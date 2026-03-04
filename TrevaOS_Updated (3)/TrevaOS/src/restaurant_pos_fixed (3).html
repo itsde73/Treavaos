@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Restaurant POS – Complete Workflow</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap');
+
+:root {
+  --bg:#f0ede8; --card:#fff; --border:#d8d3cc;
+  --blue:#1a6fa8; --blue-l:#e8f4fd;
+  --green:#1a7a4a; --green-l:#e8f5ee;
+  --amber:#d97706; --amber-l:#fef3c7;
+  --red:#c0392b; --red-l:#fdf0ee;
+  --purple:#5b4fcf; --purple-l:#f0eeff;
+  --kitchen:#b5451b; --kitchen-l:#fff0eb;
+  --bar:#7b2f8e; --bar-l:#f8eeff;
+  --teal:#0d7a6e; --teal-l:#e6faf8;
+  --gold:#8a6500; --gold-l:#fdf6e3;
+  --dark:#1a1a2e;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:#1a1a2e;}
+
+
+
+.wrap{padding:28px;overflow-x:auto;}
+.page{min-width:2000px;background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);border:1px solid var(--border);overflow:hidden;}
+
+
+
+.lane{display:flex;border-bottom:2px solid #e8e4de;}
+.lane:last-of-type{border-bottom:none;}
+.ltab{width:130px;min-width:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;border-right:4px solid;text-align:center;gap:6px;}
+.ltab .ico{font-size:28px;}
+.ltab .nm{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;line-height:1.4;}
+.lbody{flex:1;padding:16px 22px;background:#fafaf8;}
+
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sh-tag{background:var(--dark);color:#fff;font-size:11px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;letter-spacing:.6px;white-space:nowrap;}
+.sh-ttl{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#555;}
+
+/* shapes */
+.oval{display:inline-flex;align-items:center;justify-content:center;border-radius:50px;padding:7px 18px;font-size:13px;font-weight:700;border:2px solid;white-space:nowrap;text-align:center;line-height:1.3;}
+.oval-g{background:var(--green-l);border-color:var(--green);color:var(--green);}
+.oval-r{background:var(--red-l);border-color:var(--red);color:var(--red);}
+
+.bx{display:inline-flex;align-items:center;justify-content:center;border-radius:5px;padding:7px 12px;font-size:13px;font-weight:600;border:2px solid;text-align:center;line-height:1.35;white-space:nowrap;}
+.bx-bl{background:var(--blue-l);border-color:var(--blue);color:var(--blue);}
+.bx-gr{background:var(--green-l);border-color:var(--green);color:var(--green);}
+.bx-am{background:var(--amber-l);border-color:var(--amber);color:#92400e;}
+.bx-re{background:var(--red-l);border-color:var(--red);color:var(--red);}
+.bx-pu{background:var(--purple-l);border-color:var(--purple);color:var(--purple);}
+.bx-ki{background:var(--kitchen-l);border-color:var(--kitchen);color:var(--kitchen);}
+.bx-ba{background:var(--bar-l);border-color:var(--bar);color:var(--bar);}
+.bx-te{background:var(--teal-l);border-color:var(--teal);color:var(--teal);}
+.bx-go{background:var(--gold-l);border-color:var(--gold);color:var(--gold);}
+.bx-dk{background:var(--dark);border-color:var(--dark);color:#fff;}
+.sm{font-size:12px;padding:5px 10px;}
+
+.para{display:inline-flex;align-items:center;justify-content:center;border-radius:3px;padding:7px 20px;font-size:13px;font-weight:600;border:2px solid;transform:skewX(-8deg);text-align:center;line-height:1.35;white-space:nowrap;}
+.para span{transform:skewX(8deg);display:block;}
+.para-pu{background:var(--purple-l);border-color:var(--purple);color:var(--purple);}
+.para-gr{background:var(--green-l);border-color:var(--green);color:var(--green);}
+.para-bl{background:var(--blue-l);border-color:var(--blue);color:var(--blue);}
+.para-am{background:var(--amber-l);border-color:var(--amber);color:#92400e;}
+.para-te{background:var(--teal-l);border-color:var(--teal);color:var(--teal);}
+.para-ki{background:var(--kitchen-l);border-color:var(--kitchen);color:var(--kitchen);}
+.para-ba{background:var(--bar-l);border-color:var(--bar);color:var(--bar);}
+.para-go{background:var(--gold-l);border-color:var(--gold);color:var(--gold);}
+
+.dw{position:relative;display:inline-flex;align-items:center;justify-content:center;width:108px;height:88px;flex-shrink:0;}
+.d{position:absolute;width:78px;height:78px;transform:rotate(45deg);border-radius:3px;border:2.5px solid;display:flex;align-items:center;justify-content:center;}
+.d span{transform:rotate(-45deg);font-size:11px;font-weight:700;text-align:center;max-width:72px;line-height:1.25;font-family:'DM Mono',monospace;}
+.d-am{background:var(--amber-l);border-color:var(--amber);}
+.d-am span{color:#78350f;}
+.d-bl{background:var(--blue-l);border-color:var(--blue);}
+.d-bl span{color:#0c2a4a;}
+.d-gr{background:var(--green-l);border-color:var(--green);}
+.d-gr span{color:#0a3020;}
+.d-re{background:var(--red-l);border-color:var(--red);}
+.d-re span{color:#7a1a10;}
+.d-pu{background:var(--purple-l);border-color:var(--purple);}
+.d-pu span{color:#2d1a7a;}
+
+.kot{display:inline-flex;align-items:center;justify-content:center;padding:7px 14px;font-size:12px;font-weight:700;clip-path:polygon(10% 0%,90% 0%,100% 50%,90% 100%,10% 100%,0% 50%);text-align:center;line-height:1.35;white-space:nowrap;min-width:125px;}
+.kot-ki{background:var(--kitchen);color:#fff;}
+.kot-ba{background:var(--bar);color:#fff;}
+
+.arr{font-size:16px;color:#888;padding:0 3px;display:inline-flex;align-items:center;flex-shrink:0;}
+.arr::after{content:'▶';}
+.ard{font-size:14px;color:#888;display:flex;flex-direction:column;align-items:center;height:20px;justify-content:flex-end;}
+.ard::after{content:'▼';}
+.lbl{font-size:11px;font-family:'DM Mono',monospace;font-weight:700;white-space:nowrap;}
+.ly{color:var(--green);}
+.ln{color:var(--red);}
+.lb{color:var(--blue);}
+.la{color:var(--amber);}
+
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;row-gap:14px;}
+.col{display:flex;flex-direction:column;gap:5px;}
+.col-c{display:flex;flex-direction:column;gap:5px;align-items:center;}
+.br{display:flex;flex-direction:column;gap:7px;}
+.bi{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+
+.hdiv{height:1px;background:#e8e2dc;margin:12px 0;}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.chip{background:#eee;border-radius:20px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;color:#444;border:1px solid #ddd;white-space:nowrap;}
+.c-bl{background:var(--blue-l);border-color:#90c0e0;color:#0c3a60;}
+.c-gr{background:var(--green-l);border-color:#80c0a0;color:#0a3020;}
+.c-am{background:var(--amber-l);border-color:#f0a040;color:#7a3800;}
+.c-re{background:var(--red-l);border-color:#e08080;color:#7a1a10;}
+.c-pu{background:var(--purple-l);border-color:#a090e0;color:#2d1a7a;}
+.c-ki{background:var(--kitchen-l);border-color:#d08060;color:#7a2800;}
+.c-ba{background:var(--bar-l);border-color:#b080c0;color:#4a1060;}
+.c-te{background:var(--teal-l);border-color:#60c0b0;color:#054040;}
+.c-go{background:var(--gold-l);border-color:#c0a040;color:#503800;}
+
+/* ── TABLE MERGE MODULE ── */
+.merge-card{background:#fff;border:2px solid #c4b8f0;border-radius:10px;padding:18px;margin:8px 0;}
+.merge-card h4{font-size:13px;font-weight:700;color:var(--purple);letter-spacing:.7px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Mono',monospace;}
+.tgrid{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;}
+.tscen{background:#f5f3ff;border:1px solid #c4b8f0;border-radius:8px;padding:14px;min-width:280px;max-width:380px;}
+.tscen h5{font-size:12px;font-family:'DM Mono',monospace;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #d0c8f0;}
+.stepf{display:flex;flex-direction:column;gap:6px;}
+.step{display:flex;align-items:flex-start;gap:6px;}
+.sn{background:var(--purple);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.st{font-size:12px;color:#333;line-height:1.45;}
+.st b{color:var(--purple);}
+.note{background:#fffde7;border:1.5px dashed #d4a520;border-radius:4px;padding:6px 10px;font-size:11px;font-family:'DM Mono',monospace;color:#7a5000;margin-top:8px;line-height:1.45;}
+
+.tbox{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:64px;height:52px;border-radius:5px;border:2px solid;font-size:11px;font-weight:700;text-align:center;line-height:1.25;}
+.tb-occ{background:#fff0eb;border-color:var(--kitchen);color:var(--kitchen);}
+.tb-merge{background:var(--purple);border-color:var(--purple);color:#fff;}
+.tb-child{background:var(--purple-l);border-color:var(--purple);color:var(--purple);}
+.tb-free{background:var(--green-l);border-color:var(--green);color:var(--green);}
+.t-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.tlink{display:flex;align-items:center;gap:3px;}
+.tl{width:22px;height:2px;background:var(--purple);border-radius:2px;}
+
+/* ── SPLIT BILL ── */
+.split-card{background:#fff;border:2px solid #a0d4b0;border-radius:10px;padding:18px;margin:8px 0;}
+.split-card h4{font-size:13px;font-weight:700;color:var(--green);letter-spacing:.7px;text-transform:uppercase;margin-bottom:12px;font-family:'DM Mono',monospace;}
+.sgrid{display:flex;gap:16px;flex-wrap:wrap;}
+.sscen{background:#eef8f3;border:1px solid #8cc8a0;border-radius:8px;padding:14px;min-width:240px;max-width:320px;}
+.sscen h5{font-size:12px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.7px;margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid #acd8bc;}
+.sstep{display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;}
+.ssn{background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.sst{font-size:12px;color:#333;line-height:1.45;}
+.sst b{color:var(--green);}
+.sst .red{color:var(--red);}
+.sst .am{color:var(--amber);}
+.snote{background:#fffde7;border:1.5px dashed #d4a520;border-radius:4px;padding:5px 9px;font-size:11px;font-family:'DM Mono',monospace;color:#7a5000;margin-top:7px;}
+
+
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<div class="page">
+
+
+
+
+<!-- ═══ B: GUEST ARRIVAL & TABLE ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--green);background:#eef8f3;">
+    <span class="ico">🏨</span><span class="nm" style="color:var(--green);">B. Guest<br>Arrival &amp;<br>Seating</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">FRONT OF HOUSE</span><span class="sh-ttl">Reservation / Walk-in / Check-in → Waitlist → Table Assign (Section Pop-up) → Private Dining → Session Start</span></div>
+
+    <!-- FLOW ROW -->
+    <div class="row">
+      <div class="oval oval-g">Guest Arrives</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>How are they here?</span></div></div>
+      <div class="br">
+
+        <!-- PATH 1: RESERVATION -->
+        <div class="bi"><span class="lbl ly">RESERVATION →</span>
+          <div class="bx bx-gr sm">Fetch Booking Record<br>Confirm Name + Pax</div>
+          <div class="arr"></div>
+          <div class="dw"><div class="d d-am"><span>Within 15-min Grace?</span></div></div>
+          <div class="br">
+            <div class="bi"><span class="lbl ly" style="font-size:11px;">✅ ON TIME →</span>
+              <div class="bx bx-gr sm">Direct to<br>Pre-assigned Table</div>
+            </div>
+            <div class="bi"><span class="lbl ln" style="font-size:11px;">⌛ LATE (15+ min) →</span>
+              <div class="bx bx-am sm">Table Released<br>to Waitlist Pool</div>
+              <div class="arr"></div>
+              <div style="background:#fffde7;border:2px dashed #d97706;border-radius:8px;padding:8px 11px;display:inline-flex;flex-direction:column;gap:3px;min-width:150px;">
+                <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:#92400e;">🔝 PRIORITY WAITLIST</div>
+                <div style="font-size:11px;color:#555;">Guest bumped to<br><b>TOP of waitlist</b><br>as reservation holder</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PATH 2: WALK-IN / CHECK-IN -->
+        <div class="bi"><span class="lbl lb">WALK-IN / CHECK-IN →</span>
+          <div class="bx bx-gr sm">Check Live<br>Table Map</div>
+          <div class="arr"></div>
+          <div class="dw"><div class="d d-am"><span>Table Available?</span></div></div>
+          <div class="br">
+            <div class="bi"><span class="lbl ly" style="font-size:11px;">YES →</span><div class="bx bx-gr sm">Proceed to<br>Table Assign ↓</div></div>
+            <div class="bi"><span class="lbl ln" style="font-size:11px;">NO →</span>
+              <div class="bx bx-am sm">Join Waitlist<br>(regular position)</div>
+              <div class="arr"></div>
+              <div class="bx bx-am sm">🔔 SMS / App Alert<br>when table ready</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="arr"></div>
+
+      <!-- TABLE ASSIGN WITH POP-UP -->
+      <div style="background:#fff;border:2.5px solid var(--green);border-radius:10px;padding:12px 14px;display:inline-flex;flex-direction:column;gap:8px;min-width:200px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;">📋 TABLE ASSIGN POP-UP</div>
+        <div style="font-size:11px;color:#333;font-weight:600;margin-bottom:2px;">For returning guests: preferences auto-filled</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:var(--green-l);border:1.5px solid var(--green);border-radius:5px;padding:4px 9px;font-size:11px;color:var(--green);">🚬 Smoking / 🚭 Non-Smoking</div>
+          <div style="background:var(--blue-l);border:1.5px solid var(--blue);border-radius:5px;padding:4px 9px;font-size:11px;color:var(--blue);">🍽 Dine-in · 🌿 Outdoor · 🎭 Private</div>
+          <div style="background:var(--amber-l);border:1.5px solid var(--amber);border-radius:5px;padding:4px 9px;font-size:11px;color:#92400e;">👥 Pax Count + High Chair?</div>
+          <div style="background:var(--purple-l);border:1.5px solid var(--purple);border-radius:5px;padding:4px 9px;font-size:11px;color:var(--purple);">🎂 Occasion (Birthday / Anniversary)?</div>
+          <div style="background:var(--teal-l);border:1.5px solid var(--teal);border-radius:5px;padding:4px 9px;font-size:11px;color:var(--teal);">♿ Accessibility requirement?</div>
+        </div>
+      </div>
+      <div class="arr"></div>
+
+      <!-- PRIVATE DINING CHECK -->
+      <div class="dw"><div class="d d-pu"><span>Private Dining Selected?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span>
+          <div style="background:var(--purple-l);border:2px solid var(--purple);border-radius:8px;padding:9px 12px;display:inline-flex;flex-direction:column;gap:4px;min-width:160px;">
+            <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--purple);">🎭 PRIVATE DINING</div>
+            <div style="font-size:11px;color:#333;">Room charge: ₹X added<br>to bill automatically</div>
+            <div style="font-size:11px;color:#333;">Décor / setup add-ons<br>selectable here</div>
+            <div style="font-size:11px;color:var(--purple);font-weight:700;">Manager confirmation req.</div>
+          </div>
+        </div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-gr sm">Regular Table<br>Assigned</div></div>
+      </div>
+      <div class="arr"></div>
+
+      <!-- RESERVATION EDIT -->
+      <div style="background:#f0fff8;border:2px dashed var(--green);border-radius:8px;padding:9px 12px;display:inline-flex;flex-direction:column;gap:4px;min-width:155px;">
+        <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);">✏️ EDIT RESERVATION</div>
+        <div style="font-size:11px;color:#333;">Guest can request:<br>· Change table<br>· Change section<br>· Update pax count<br>· Add / remove occasion</div>
+        <div style="font-size:11px;color:var(--green);font-weight:700;">Manager confirms if<br>table already assigned</div>
+      </div>
+      <div class="arr"></div>
+
+      <div class="dw"><div class="d d-bl"><span>New or Returning?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl lb">RETURNING →</span><div class="bx bx-gr sm">Load Profile + Loyalty<br>+ Preference History</div></div>
+        <div class="bi"><span class="lbl ln">NEW →</span><div class="bx bx-bl sm">Capture Name / Mobile<br>Create Profile</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-gr">Enter Pax Count<br>Assign Captain</div>
+      <div class="arr"></div>
+      <div class="bx bx-am">Table → "Occupied" 🟠</div>
+      <div class="arr"></div>
+      <div class="para para-gr"><span>Session Started ✓<br>Timer ⏱ Running</span></div>
+    </div>
+
+    <div class="chips">
+      <span class="chip c-gr">Reservation: 15-min grace window — late guests go top of waitlist</span>
+      <span class="chip c-gr">Table assign pop-up: Smoking / Section / Pax / Occasion / Accessibility</span>
+      <span class="chip c-pu">Private dining: auto-adds room/setup charge to bill</span>
+      <span class="chip c-gr">Edit reservation: table, section, pax, occasion — manager confirms if occupied</span>
+      <span class="chip c-am">Waitlist: SMS/app alert when table ready; reservation holders always prioritised</span>
+      <span class="chip c-gr">Returning guest: section + smoking preference auto-loaded from profile</span>
+      <span class="chip c-gr">Reservation Sync: Zomato / UrbanPiper / EazyDiner</span>
+      <span class="chip c-gr">Sections: Indoor / Terrace / Private Dining / Banquet / Outdoor</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ B1: ORDER TAKING ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--amber);background:#fffbee;">
+    <span class="ico">📋</span><span class="nm" style="color:var(--amber);">B1. Order<br>Taking</span>
+  </div>
+  <div class="lbody">
+
+    <!-- ── PATH A: CAPTAIN TAKES ORDER ── -->
+    <div class="sh"><span class="sh-tag">PATH A · CAPTAIN / STEWARD</span><span class="sh-ttl">Traditional Flow — Captain Presents Menu → Takes Order → Fires KOT</span></div>
+    <div class="row">
+      <div class="oval oval-g">Guest Seated</div>
+      <div class="arr"></div>
+      <div class="bx bx-am">Captain Approaches<br>Table</div>
+      <div class="arr"></div>
+      <div class="bx bx-am">Presents Physical /<br>Digital Menu</div>
+      <div class="arr"></div>
+      <div class="bx bx-am">Guest Selects<br>Course + Item</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Item Available?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-am sm">Captain Enters<br>in POS / Steward App</div></div>
+        <div class="bi"><span class="lbl ln">86'd →</span><div class="bx bx-re sm">Suggest Alt /<br>Mark Unavailable</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Customisation?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span>
+          <div class="col" style="gap:5px;">
+            <div class="bx bx-am sm">Select Modifier:<br>Spice / Size / Extra / Remove</div>
+            <div class="bx bx-am sm">📝 Add Chef Note<br>(free text)</div>
+            <div class="dw"><div class="d d-re"><span>Conflicts with Dish Profile?</span></div></div>
+            <div class="br">
+              <div class="bi"><span class="lbl ln" style="font-size:10px;">⚠️ CONFLICT →</span>
+                <div style="background:#fff0ee;border:2px solid var(--red);border-radius:8px;padding:8px 11px;display:inline-flex;flex-direction:column;gap:3px;min-width:170px;">
+                  <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);">⚠️ EXPERIENCE ALERT</div>
+                  <div style="font-size:11px;color:#333;line-height:1.4;">e.g. <i>"This dish is signature<br>spicy — reducing spice may<br>affect your experience"</i></div>
+                  <div class="dw"><div class="d d-re"><span>Guest Confirms?</span></div></div>
+                  <div class="br">
+                    <div class="bi"><span class="lbl ly" style="font-size:10px;">PROCEED →</span><div class="bx bx-am sm" style="font-size:10px;">Note saved on KOT</div></div>
+                    <div class="bi"><span class="lbl ln" style="font-size:10px;">REVERT →</span><div class="bx bx-am sm" style="font-size:10px;">Standard Prep</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="bi"><span class="lbl ly" style="font-size:10px;">NO CONFLICT →</span><div class="bx bx-am sm">Modifier Applied ✓</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-am sm">Standard Prep</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-am">Captain Confirms<br>+ Fires Order</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-bl"><span>Kitchen or Bar?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">KITCHEN →</span><div class="kot kot-ki">🔴 KOT → Kitchen<br>Printer / KDS</div></div>
+        <div class="bi"><span class="lbl lb">BAR →</span><div class="kot kot-ba">🟣 BOT → Bar<br>Printer / Bar KDS</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="para para-am"><span>KOT No., ord No.,Steward<br>+ Time & Table Stamped </span></div>
+      <div class="arr"></div>
+      <div class="para para-am"><span>Bill Generated and <br>Given to guest</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-am">Multiple KOTs per table (running order)</span>
+      <span class="chip c-am">Steward Mobile App (tablet/handheld)</span>
+      <span class="chip c-am">Void/Cancel Item → manager auth + reason</span>
+      <span class="chip c-ki">Kitchen KOT: Starters / Mains / Desserts</span>
+      <span class="chip c-ba">Bar KOT: Cocktails / Spirits / Mocktails</span>
+    </div>
+
+    <div class="hdiv"></div>
+
+    <!-- ── PATH B: CUSTOMER SCANS QR & ORDERS ── -->
+    <div class="sh"><span class="sh-tag">PATH B · GUEST SELF-ORDER via QR</span><span class="sh-ttl">Customer Scans QR → Browses Digital Menu → Adds Items → Captain Gets Notification → Confirms → KOT Fired</span></div>
+
+    <!-- QR card visual -->
+    <div style="background:#eafaff;border:2px solid var(--teal);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="background:var(--teal);color:#fff;font-size:11px;font-family:'DM Mono',monospace;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.7px;">HOW IT WORKS</div>
+        <span style="font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.7px;">QR placed on every table — guest scans any time, no app needed</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div style="background:#fff;border:1.5px dashed var(--teal);border-radius:8px;padding:10px 14px;text-align:center;min-width:80px;">
+          <div style="font-size:26px;">📱</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);font-weight:700;margin-top:4px;">GUEST<br>SCANS</div>
+        </div>
+        <div style="font-size:18px;color:#aaa;">→</div>
+        <div style="background:#fff;border:1.5px dashed var(--teal);border-radius:8px;padding:10px 14px;text-align:center;min-width:80px;">
+          <div style="font-size:26px;">🍽️</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);font-weight:700;margin-top:4px;">MENU<br>OPENS</div>
+        </div>
+        <div style="font-size:18px;color:#aaa;">→</div>
+        <div style="background:#fff;border:1.5px dashed var(--teal);border-radius:8px;padding:10px 14px;text-align:center;min-width:80px;">
+          <div style="font-size:26px;">🛒</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);font-weight:700;margin-top:4px;">ADDS<br>ITEMS</div>
+        </div>
+        <div style="font-size:18px;color:#aaa;">→</div>
+        <div style="background:#fff;border:1.5px dashed #d97706;border-radius:8px;padding:10px 14px;text-align:center;min-width:80px;">
+          <div style="font-size:26px;">🔔</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:#d97706;font-weight:700;margin-top:4px;">CAPTAIN<br>NOTIFIED</div>
+        </div>
+        <div style="font-size:18px;color:#aaa;">→</div>
+        <div style="background:#fff;border:1.5px dashed var(--green);border-radius:8px;padding:10px 14px;text-align:center;min-width:80px;">
+          <div style="font-size:26px;">✅</div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--green);font-weight:700;margin-top:4px;">KOT<br>FIRED</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="oval oval-g">Guest Seated</div>
+      <div class="arr"></div>
+      <div class="bx bx-te">QR Code on Table<br>(Unique per Table)</div>
+      <div class="arr"></div>
+      <div class="bx bx-te">Guest Scans QR<br>(No App Needed)</div>
+      <div class="arr"></div>
+      <div class="bx bx-te">Digital Menu Opens<br>in Browser</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-gr"><span>Browse or Order?</span></div></div>
+      <div class="br">
+
+        <!-- Browse only -->
+        <div class="bi"><span class="lbl ly" style="color:var(--teal);">BROWSE (DINE IN) →</span>
+          <div class="bx bx-te sm">View Items: Images,<br>Price, Allergens</div>
+          <div class="arr"></div>
+          <div class="bx bx-am sm">Calls Captain<br>to Order</div>
+          <div class="arr"></div>
+          <div class="para para-am"><span>→ PATH A Above</span></div>
+        </div>
+
+        <!-- Self-order -->
+        <div class="bi"><span class="lbl lb" style="color:var(--teal);">SELF-ORDER (QSR)→</span>
+          <div class="bx bx-te sm">Select Items +<br>Modifiers in Cart</div>
+          <div class="arr"></div>
+          <div class="bx bx-te sm">Place Order<br>(Tap Confirm)</div>
+          <div class="arr"></div>
+
+          <!-- Captain notification block -->
+          <div style="background:#fffbee;border:2px solid #d97706;border-radius:8px;padding:10px 14px;display:inline-flex;flex-direction:column;gap:6px;min-width:170px;">
+            <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:#92400e;letter-spacing:.5px;">🔔 CAPTAIN DASHBOARD</div>
+            <div style="font-size:12px;color:#333;line-height:1.4;">New order alert:<br><b>Table A1 · 3 items</b></div>
+            <div style="font-size:11px;color:#555;">Captain sees item list,<br>modifiers &amp; special notes</div>
+          </div>
+          <div class="arr"></div>
+
+          <div class="dw"><div class="d d-am"><span>Payment Done?</span></div></div>
+          <div class="br">
+            <div class="bi"><span class="lbl ly" style="font-size:11px;">Yes →</span>
+              <div class="bx bx-am sm">Send Kot OR BOT<br></div>
+              <!-- <div class="arr"></div> -->
+              <!-- <div class="dw"><div class="d d-bl"><span>Captain Approves?</span></div></div> -->
+              <div class="br">
+                <div class="bi"><span class="" style="font-size:11px;"></span>
+                  <div class=""><br></div>
+                </div>
+                <div class=""><span class="" style="font-size:11px;"></span>
+                  <div class=""><br></div>
+                </div>
+              </div>
+            </div>
+            <div class="bi"><span class="lbl lb" style="font-size:11px;"> </span>
+              <!-- <div class="bx bx-te sm">POS Auto-confirms<br>(no captain step)</div> -->
+            </div>
+          </div>
+          <div class="arr"></div>
+          <div class="dw"><div class="d d-bl"><span>Kitchen or Bar?</span></div></div>
+          <div class="br">
+            <div class="bi"><span class="lbl ly">KITCHEN →</span><div class="kot kot-ki">🔴 KOT → Kitchen</div></div>
+            <div class="bi"><span class="lbl lb">BAR →</span><div class="kot kot-ba">🟣 KOT → Bar</div></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="arr"></div>
+      <div class="para para-te"><span>Order on Table Bill ✓<br>Same POS flow continues</span></div>
+    </div>
+
+    <div class="chips">
+      <span class="chip c-te">Unique QR per table — static or dynamic</span>
+      <span class="chip c-te">No app install needed — opens in phone browser</span>
+      <span class="chip c-te">Real-time 86'd item hiding on QR menu</span>
+      <span class="chip c-te">Item images, allergens, dietary tags visible</span>
+      <span class="chip c-te">Multi-language menu support</span>
+      <span class="chip c-am">Captain notified instantly on POS dashboard + mobile app</span>
+      <span class="chip c-am">Captain approval toggle: ON (review) / OFF (auto-accept)</span>
+      <span class="chip c-am">Captain can edit or reject guest's QR order before KOT fires</span>
+      <span class="chip c-gr">QR order + Captain order both merge into same table bill</span>
+      <span class="chip c-gr">Guest can place multiple QR orders during the meal</span>
+      <span class="chip c-te">Upsell / chef recommendation banners on QR menu</span>
+      <span class="chip c-te">Loyalty points balance visible on QR menu page</span>
+    </div>
+
+  </div>
+</div>
+
+<div class="lane">
+  <div class="ltab" style="border-color:var(--amber);background:#fffbee;">
+    <!-- <span class="ico">📋</span><span class="nm" style="color:var(--amber);">B1. Order<br>Taking &amp;<br>QR Menu</span> -->
+  </div>
+  <div class="lbody">
+
+   
+
+  </div>
+</div>
+
+
+<!-- ═══ B2: TABLE MERGE & SPLIT BILL ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--purple);background:#f5f0ff;">
+    <span class="ico">🔗</span><span class="nm" style="color:var(--purple);">B2. Table<br>Merge &amp;<br>Split Bill</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">TABLE MANAGEMENT / CASHIER</span><span class="sh-ttl">Table Merge: A1+A2 → Bill on Master · 2 Ways to Split Individual Bills</span></div>
+
+    <!-- SPLIT BILL -->
+    <div class="split-card">
+      <h4>Individual Bill / Split Payment Methods</h4>
+      <div class="sgrid">
+
+        <div class="sscen">
+          <h5>Method A — Item-wise Split</h5>
+          <div class="sstep"><div class="ssn">1</div><div class="sst">Cashier opens table bill → tap <b>"Split Bill"</b></div></div>
+          <div class="sstep"><div class="ssn">2</div><div class="sst">Select <b>"By Items"</b></div></div>
+          <div class="sstep"><div class="ssn">3</div><div class="sst">Assign each item to <b>Person 1, 2, 3…</b> by tapping</div></div>
+          <!-- <div class="sstep"><div class="ssn">4</div><div class="sst">Shared items (starters) → <span class="am"><b>split equally</b></span> or assigned to one person</div></div> -->
+          <div class="sstep"><div class="ssn">4</div><div class="sst">System creates <b>separate sub-bills</b> per person</div></div>
+          <div class="sstep"><div class="ssn">5</div><div class="sst">GST calculated correctly <b>per sub-bill</b></div></div>
+          <div class="sstep"><div class="ssn">6</div><div class="sst">Each person pays by any mode (Cash / Card / UPI)</div></div>
+          <div class="sstep"><div class="ssn">7</div><div class="sst">All settled → table released as "Available"</div></div>
+          <!-- <div class="snote">✅ Most flexible. Best for fine dining.</div> -->
+        </div>
+
+        
+
+      </div>
+    </div>
+
+    <!-- Cashier decision flow for split -->
+    <div class="sh" style="margin-top:8px;"><span class="sh-tag">CASHIER FLOW</span><span class="sh-ttl">Bill Split + Discount Decision Tree</span></div>
+    <div class="row">
+      <div class="bx bx-gr">Guest Requests Bill</div>
+      <div class="arr"></div>
+      <div class="bx bx-gr">Cashier Opens Table</div>
+     <!-- <div class="arr"></div> -->
+      <!-- <div class="dw"><div class="d d-am"><span>Tables Merged?</span></div></div> -->
+      <div class="br">
+        <!-- <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-pu sm">Merged Table<br></div></div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-gr sm">Single Table Bill</div></div> -->
+      </div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Split Bill Requested?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span>
+          <div class="col" style="gap:2px;">
+            <div class="bx bx-pu sm">By Items (Item-wise)</div>
+            <div class="bx bx-pu sm">By Table (Merged)</div>
+          </div>
+        </div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-gr sm">Full Bill → 1 Person</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-gr">GST + Service Charge<br>per Sub-bill</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Discount (NC and Complimentary) </span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">🔐 Manager Auth<br>Required</div></div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-gr sm">Regular Price</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-gr">Each Guest Pays<br>(any mode)</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-gr"><span>All Sub-bills Settled?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-gr sm">Table(s) Released ✓</div></div>
+        <div class="bi"><span class="lbl ln">PENDING →</span><div class="bx bx-am sm">Partial Settlement<br>Continue</div></div>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip c-pu">Merge: A1 Master + A2/A3… Children → 1 Bill on A1</span>
+      <span class="chip c-pu">KOT still shows original table so kitchen knows where to deliver</span>
+      <span class="chip c-pu">Demerge before billing to pay separately per table</span>
+      <span class="chip c-gr">2 Split Methods: Item-wise / By Table (Merged)</span>
+      <span class="chip c-gr">Partial settlement tracking — table stays occupied until all pay</span>
+      <span class="chip c-gr">GST correctly applied per sub-bill</span>
+      <span class="chip c-bl">Loyalty points applied per individual payer</span>
+      <span class="chip c-bl">Each sub-bill can use different payment mode</span>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ═══ D: KITCHEN ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--kitchen);background:#fff4ef;">
+    <span class="ico">👨‍🍳</span><span class="nm" style="color:var(--kitchen);">D. Kitchen</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">BACK OF HOUSE – KITCHEN</span><span class="sh-ttl">KOT Received → Station Assigned → Prep Timer Starts → Status Alerts → Ready → Manager Dispatches</span></div>
+    <div class="row">
+      <div class="kot kot-ki">🔴 KOT Received<br>(Kitchen)</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-re"><span>Display Mode?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">KDS →</span><div class="bx bx-ki sm">Kitchen Display Screen</div></div>
+        <div class="bi"><span class="lbl ln">PRINTER →</span><div class="bx bx-ki sm">KOT Slip Printed</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Route to Section<br>(Indian / Chinese /<br>Tandoor / Grill etc.)</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Chef de Partie<br>Assigns Cook + Station</div>
+      <div class="arr"></div>
+
+      <!-- TIMER + STATUS BLOCK -->
+      <div style="background:#fff;border:2.5px solid var(--kitchen);border-radius:10px;padding:12px 14px;display:inline-flex;flex-direction:column;gap:8px;min-width:220px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--kitchen);letter-spacing:.7px;">⏱ PREP TIMER &amp; KOT STATUS</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="background:var(--amber-l);border:1.5px solid var(--amber);border-radius:5px;padding:5px 9px;font-size:11px;color:#92400e;">🟡 IN PREP — Timer running</div>
+          <div style="background:#e8f5ee;border:1.5px solid var(--green);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--green);">🟢 READY — Dish complete</div>
+          <div style="background:var(--red-l);border:1.5px solid var(--red);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--red);">🔴 DELAYED — Past target time</div>
+        </div>
+        <div style="background:#fffde7;border:1.5px dashed #d97706;border-radius:5px;padding:6px 9px;">
+          <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:#92400e;margin-bottom:3px;">⚠️ ALERT LOGIC</div>
+          <div style="font-size:11px;color:#555;line-height:1.5;">• Target time reached → 🔔 Alert to Chef + Manager<br>• Chef ticks "LATE (with reason)" → alert snoozed<br>• After 5 min → 🔔 Second alert fires automatically<br>• Manager escalation if still unresolved</div>
+        </div>
+      </div>
+      <div class="arr"></div>
+
+      <div class="dw"><div class="d d-re"><span>Expo Counter Check</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">ALL READY →</span><div class="bx bx-ki sm">Status → "Ready" 🟢<br>Alert fired to Manager</div></div>
+        <div class="bi"><span class="lbl ln">PARTIAL →</span><div class="bx bx-am sm">Send Available /<br>Hold Rest</div></div>
+      </div>
+      <div class="arr"></div>
+
+      <!-- MANAGER DISPATCHES -->
+      <div style="background:var(--blue-l);border:2px solid var(--blue);border-radius:8px;padding:9px 12px;display:inline-flex;flex-direction:column;gap:4px;min-width:150px;">
+        <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--blue);">👔 MANAGER / CAPTAIN</div>
+        <div style="font-size:11px;color:#333;">Receives "Food Ready"<br>notification on POS</div>
+        <div style="font-size:11px;color:#333;">Assigns food runner<br>to deliver to table</div>
+        <div style="font-size:11px;color:var(--blue);font-weight:700;">Confirms dispatch ✓</div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-gr">Food Dispatched<br>to Table ✓</div>
+      <div class="arr"></div>
+      <div class="para para-ki"><span>Prep Time Logged<br>vs. Target</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-ki">KOT target time set per dish / category in system</span>
+      <span class="chip c-ki">Alert 1: at target time — chef + manager notified</span>
+      <span class="chip c-ki">Chef marks "Late" with reason → alert snoozed 5 min</span>
+      <span class="chip c-ki">Alert 2: auto-fires 5 min after chef marks late</span>
+      <span class="chip c-ki">Manager handles food dispatch — not chef</span>
+      <span class="chip c-ki">KOT mod alert (cancelled / changed items mid-prep)</span>
+      <span class="chip c-ki">Rush / Priority flag on KOT (VIP / event tables)</span>
+      <span class="chip c-ki">Avg prep time tracked per dish for performance reports</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ E: BAR ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--bar);background:#f8f0ff;">
+    <span class="ico">🍸</span><span class="nm" style="color:var(--bar);">E. Bar</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">BACK OF HOUSE – BAR</span><span class="sh-ttl">BOT Received → Beverage Type → Bartender Prep → Timer Alert → Ready → Manager / Captain Dispatches</span></div>
+    <div class="row">
+      <div class="kot kot-ba">🟣 BOT Received<br>(Bar)</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-pu"><span>Beverage Type?</span></div></div>
+      <div class="arr"></div>
+      <div class="col">
+        <div class="bx bx-ba sm">🍹 Cocktail / Mocktail</div>
+        <div class="bx bx-ba sm">🥃 Straight Drinks &amp; Shots</div>
+        <div class="bx bx-ba sm">🍺 Beer (Draught / Bottle)</div>
+        <div class="bx bx-ba sm">🍾 Bottled → Open &amp; Serve</div>
+        <div class="bx bx-ki sm">🥤 Non-Alcoholic</div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Assign Bartender<br>&amp; Station</div>
+      <div class="arr"></div>
+
+      <!-- BAR TIMER + STATUS BLOCK -->
+      <div style="background:#fff;border:2.5px solid var(--bar);border-radius:10px;padding:12px 14px;display:inline-flex;flex-direction:column;gap:8px;min-width:220px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--bar);letter-spacing:.7px;">⏱ PREP TIMER &amp; BOT STATUS</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="background:var(--amber-l);border:1.5px solid var(--amber);border-radius:5px;padding:5px 9px;font-size:11px;color:#92400e;">🟡 PREPARING — Timer running</div>
+          <div style="background:#e8f5ee;border:1.5px solid var(--green);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--green);">🟢 READY — Drink complete</div>
+          <div style="background:var(--red-l);border:1.5px solid var(--red);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--red);">🔴 DELAYED — Past target time</div>
+        </div>
+        <div style="background:#fffde7;border:1.5px dashed #d97706;border-radius:5px;padding:6px 9px;">
+          <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:#92400e;margin-bottom:3px;">⚠️ ALERT LOGIC</div>
+          <div style="font-size:11px;color:#555;line-height:1.5;">• Target time reached → 🔔 Alert to Bartender + Manager<br>• Bartender ticks "LATE (with reason)" → alert snoozed<br>• After 5 min → 🔔 Second alert fires automatically<br>• Bar Manager escalation if still unresolved</div>
+        </div>
+      </div>
+      <div class="arr"></div>
+
+      <div class="bx bx-ba">Ready 🟢<br>Notify Captain / Manager</div>
+      <div class="arr"></div>
+
+      <!-- MANAGER DISPATCHES -->
+      <div style="background:var(--blue-l);border:2px solid var(--blue);border-radius:8px;padding:9px 12px;display:inline-flex;flex-direction:column;gap:4px;min-width:150px;">
+        <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--blue);">👔 CAPTAIN / MANAGER</div>
+        <div style="font-size:11px;color:#333;">Receives "Drink Ready"<br>notification on POS</div>
+        <div style="font-size:11px;color:#333;">Assigns runner to<br>carry to table / bar</div>
+        <div style="font-size:11px;color:var(--blue);font-weight:700;">Confirms dispatch ✓</div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-gr">Served at Table /<br>Bar Counter ✓</div>
+      <div class="arr"></div>
+      <div class="para para-ba"><span>Liquor Stock<br>Auto-deducted</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-ba">BOT target time set per drink category (cocktail vs. shot vs. draught)</span>
+      <span class="chip c-ba">Alert 1: at target time — bartender + manager notified</span>
+      <span class="chip c-ba">Bartender marks "Late" with reason → alert snoozed 5 min</span>
+      <span class="chip c-ba">Alert 2: auto-fires 5 min after bartender marks late</span>
+      <span class="chip c-ba">Captain / Manager handles dispatch — bartender stays at bar</span>
+      <span class="chip c-ba">Liquor: Bottle / Peg / ml tracked per serve</span>
+      <span class="chip c-ba">Happy Hour pricing (time-based)</span>
+      <span class="chip c-ba">Age verification flag on BOT</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ G: ONLINE ORDERS ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--teal);background:#eafaff;">
+    <span class="ico">📱</span><span class="nm" style="color:var(--teal);">G. Online<br>Orders</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">AGGREGATOR + OWN CHANNEL</span><span class="sh-ttl">Order Received → Accept/Reject → KOT → Prep Timer → Ready Alert → Pack → Dispatch</span></div>
+    <div class="row">
+      <div class="col">
+        <div class="bx bx-te sm">🛵 Swiggy</div>
+        <div class="bx bx-te sm">🍽 Zomato</div>
+        <div class="bx bx-te sm">🌐 Own Website/App</div>
+        <div class="bx bx-te sm">📞 Phone / WhatsApp</div>
+        <div class="bx bx-te sm">🏪 Counter Takeaway</div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-te">Order → Captain<br>Dashboard</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-gr"><span>Accept or Reject?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">ACCEPT →</span>
+          <div class="col" style="gap:4px;">
+            <div class="bx bx-te sm">Set Prep Time<br>(ETA to customer)</div>
+            <div class="kot kot-ki" style="font-size:12px;">🔴 KOT → Kitchen</div>
+          </div>
+        </div>
+        <div class="bi"><span class="lbl ln">REJECT →</span><div class="bx bx-re sm">Send Reason to<br>Customer / Platform</div></div>
+      </div>
+      <div class="arr"></div>
+
+      <!-- PREP TIMER BLOCK -->
+      <div style="background:#fff;border:2.5px solid var(--teal);border-radius:10px;padding:12px 14px;display:inline-flex;flex-direction:column;gap:8px;min-width:210px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;font-weight:700;color:var(--teal);letter-spacing:.7px;">⏱ PREP TIMER — ONLINE ORDER</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="background:var(--amber-l);border:1.5px solid var(--amber);border-radius:5px;padding:5px 9px;font-size:11px;color:#92400e;">🟡 COOKING — Timer running</div>
+          <div style="background:#e8f5ee;border:1.5px solid var(--green);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--green);">🟢 FOOD READY — Alert fires</div>
+          <div style="background:var(--red-l);border:1.5px solid var(--red);border-radius:5px;padding:5px 9px;font-size:11px;color:var(--red);">🔴 OVERDUE — Manager alert</div>
+        </div>
+        <div style="background:#fffde7;border:1.5px dashed #d97706;border-radius:5px;padding:6px 9px;">
+          <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:#92400e;margin-bottom:3px;">⚠️ ALERT LOGIC</div>
+          <div style="font-size:11px;color:#555;line-height:1.5;">• Prep time elapsed → 🔔 Alert captain to pack<br>• Chef marks "Late" → snoozed + ETA updated<br>• 5 min later → 🔔 Second alert + manager notified<br>• Platform ETA auto-updated if delayed</div>
+        </div>
+      </div>
+      <div class="arr"></div>
+
+      <div class="bx bx-te">Pack + Seal<br>+ Label</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-gr"><span>Delivery or Pickup?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">DELIVERY →</span><div class="bx bx-te sm">Assign Rider → Track<br>Live ETA to customer</div></div>
+        <div class="bi"><span class="lbl ln">PICKUP →</span><div class="bx bx-te sm">Queue Token<br>→ Counter Ready</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="para para-bl"><span>Auto-Invoice<br>(same as cashier)</span></div>
+      <div class="arr"></div>
+      <div class="para para-gr"><span>Order "Delivered" ✓</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-te">Prep time set per order on accept — broadcast to customer as ETA</span>
+      <span class="chip c-te">Food ready alert → captain prompted to pack immediately</span>
+      <span class="chip c-te">Delay: chef marks late → ETA updated on platform automatically</span>
+      <span class="chip c-te">Aggregator menu sync (single source of truth)</span>
+      <span class="chip c-te">ONDC integration</span>
+      <span class="chip c-te">Cloud Kitchen multi-brand support</span>
+      <span class="chip c-te">Packaging material auto-deducted from store</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ H: INVENTORY — MAIN STORE + KITCHEN + BAR ═══ -->
+
+<!-- ── H1: MAIN STORE (Central) ── -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--gold);background:#fdf8ee;">
+    <span class="ico">🏪</span><span class="nm" style="color:var(--gold);">H1. Main<br>Store<br>(Central)</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">STORE MANAGER</span><span class="sh-ttl">Central Store — Receives ALL Goods from Vendors · Issues Daily to Kitchen &amp; Bar on Indent</span></div>
+
+    <!-- What Main Store holds -->
+    <div style="background:#fff;border:2px solid #c0a040;border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;">📦 MAIN STORE — HOLDS EVERYTHING THE RESTAURANT NEEDS</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+
+        <div style="background:#fdf6e3;border:1.5px solid #c0a040;border-radius:8px;padding:10px 13px;min-width:155px;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--gold);margin-bottom:6px;">🥦 RAW INGREDIENTS</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">Vegetables &amp; Fruits<br>Meat, Poultry, Seafood<br>Dairy · Eggs<br>Rice, Flour, Grains, Pulses<br>Oils, Spices, Condiments<br>Frozen &amp; Canned Goods<br>Dry Fruits &amp; Nuts</div>
+        </div>
+
+        <div style="background:#fdf6e3;border:1.5px solid #c0a040;border-radius:8px;padding:10px 13px;min-width:155px;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--gold);margin-bottom:6px;">🍾 BAR &amp; BEVERAGES</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">Spirits (Whisky, Rum, Vodka)<br>Beer (Bottles + Kegs)<br>Wine (Red, White, Sparkling)<br>Cocktail Mixers &amp; Syrups<br>Soft Drinks &amp; Juices<br>Mineral Water<br>Coffee Beans &amp; Tea</div>
+        </div>
+
+        <div style="background:#fdf6e3;border:1.5px solid #c0a040;border-radius:8px;padding:10px 13px;min-width:155px;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--gold);margin-bottom:6px;">📦 PACKAGING &amp; DISPOSABLES</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">Takeaway Boxes &amp; Bags<br>Foil, Cling Wrap<br>Tissues &amp; Napkins<br>Disposable Cutlery<br>Paper Cups &amp; Straws<br>Labels &amp; Stickers</div>
+        </div>
+
+        <div style="background:#fdf6e3;border:1.5px solid #c0a040;border-radius:8px;padding:10px 13px;min-width:155px;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--gold);margin-bottom:6px;">🧹 CLEANING &amp; HYGIENE</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">Dish Soap &amp; Degreasers<br>Floor &amp; Surface Cleaners<br>Sanitisers &amp; Disinfectants<br>Hand Wash &amp; Gloves<br>Mops, Scrubs, Brooms<br>Garbage Bags &amp; Bins<br>Pest Control Materials</div>
+        </div>
+
+        <div style="background:#fdf6e3;border:1.5px solid #c0a040;border-radius:8px;padding:10px 13px;min-width:155px;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--gold);margin-bottom:6px;">🕯 STATIONERY &amp; MISC</div>
+          <div style="font-size:11px;color:#444;line-height:1.6;">KOT / Bill Printer Rolls<br>Candles &amp; Table Decor<br>Uniforms &amp; Linen<br>First Aid Supplies<br>Equipment Spare Parts<br>LPG Cylinders / Fuel<br>Stationery &amp; Pens</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Main store zones -->
+    <div style="background:#fff;border:2px solid #c0a040;border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">🗄 STORAGE ZONES WITHIN MAIN STORE</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="background:#e8f4fd;border:1.5px solid var(--blue);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;font-weight:700;">🌡 DRY STORE<br><span style="font-weight:400;color:#333;">Grains, Spices, Canned, Packaging</span></div>
+        <div style="background:#e8f5ee;border:1.5px solid var(--green);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--green);font-family:'DM Mono',monospace;font-weight:700;">❄ COLD ROOM (2–8°C)<br><span style="font-weight:400;color:#333;">Dairy, Fruits, Veg, Marinated Meats</span></div>
+        <div style="background:#e8f4fd;border:1.5px solid var(--blue);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;font-weight:700;">🧊 FREEZER (−18°C)<br><span style="font-weight:400;color:#333;">Frozen Meats, Seafood, Ice Cream</span></div>
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--bar);font-family:'DM Mono',monospace;font-weight:700;">🍾 BAR CHILLER<br><span style="font-weight:400;color:#333;">Spirits, Wine, Beer, Kegs</span></div>
+        <div style="background:#fdf6e3;border:1.5px solid var(--gold);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--gold);font-family:'DM Mono',monospace;font-weight:700;">🧹 NON-FOOD ZONE<br><span style="font-weight:400;color:#333;">Cleaning, Packaging, Stationery</span></div>
+      </div>
+    </div>
+
+    <!-- Daily flow -->
+    <div class="sh"><span class="sh-tag">DAILY FLOW</span><span class="sh-ttl">Vendor GRN → Stock In → Indent from Kitchen &amp; Bar → Issue → Ledger Update → EOD Count</span></div>
+    <div class="row">
+      <div class="oval oval-g">Day Start</div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Opening Stock<br>Count</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Vendor Delivery every 15 Days?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly"></span>
+          <div class="">Yes<br></div>
+          <div class="arr"></div>
+          <div class="dw"><div class="d d-am"><span>Quality / chef check?</span></div></div>
+          <div class="br">
+            <div class="bi"><span class="lbl ly" style="font-size:10px;">✅ PASS →</span><div class="bx bx-gr sm">Stock In ✓<br>Zone-wise</div></div>
+            <div class="bi"><span class="lbl ln" style="font-size:10px;">❌ FAIL →</span><div class="bx bx-re sm">Return to Vendor<br>+ Debit Note</div></div>
+          </div>
+        </div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-go sm"><br>Available Stock</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-go">GRN Good Received<br></div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Receive Indents<br></div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Indent From?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl" style="color:var(--kitchen);">🍳 KITCHEN →</span><div class="bx bx-ki sm">Issue Raw Ingredients<br>to Each Section</div></div>
+        <div class="bi"><span class="lbl" style="color:var(--bar);">🍸 BAR →</span><div class="bx bx-ba sm">Issue Liquor, Mixers<br>&amp; Bar Consumables</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Update Issue<br>Ledger</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Item Below Reorder Level?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">🔔 Alert Store Mgr<br>→ Purchase Req</div></div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-go sm">Continue Normal</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Actual Vs Used<br>Count</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Variance?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">Log &amp; Investigate</div></div>
+        <div class="bi"><span class="lbl ln">OK →</span><div class="para para-go"><span>Closing Stock ✓</span></div></div>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip c-go">All vendor GRNs booked against Main Store only</span>
+      <span class="chip c-go">5 Categories: Food / Beverage / Cleaning / Packaging / Misc</span>
+      <span class="chip c-go">FIFO / FEFO rotation enforced</span>
+      <span class="chip c-go">Batch, Lot &amp; Expiry tracking</span>
+      <span class="chip c-go">Item-wise reorder level + reorder qty configured</span>
+      <span class="chip c-go">Daily issue report per section</span>
+      <span class="chip c-go">Monthly consumption trend report</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── H2: MAIN KITCHEN — 9 SECTIONS ── -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--kitchen);background:#fff4ef;">
+    <span class="ico">🍳</span><span class="nm" style="color:var(--kitchen);">H2. Main<br>Kitchen<br>(9 Sections)</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">HEAD CHEF / CHEF DE PARTIE</span><span class="sh-ttl">Each Section Raises Daily Indent → Main Store Issues → KOT → Auto Deduction → Section Closing Stock</span></div>
+
+    <!-- 9 sections grid -->
+    <div style="background:#fff;border:2px solid #d08060;border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:var(--kitchen);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;">9 KITCHEN SECTIONS — EACH HAS OWN DAILY INDENT &amp; CONSUMPTION LEDGER</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🇮🇳 Indian</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Dal, Sabzi, Biryani<br>Curries, Rotis, Rice Dishes<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Spices · Pulses · Ghee · Onion</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🥢 Chinese</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Noodles, Fried Rice<br>Manchurian, Dimsums, Soups<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Soy Sauce · Spring Onion · Vinegar</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🍕 Pizza</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Thin/Thick Crust, Calzone<br>Garlic Bread, Bruschetta<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Dough · Cheese · Pizza Sauce</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🫕 North Indian</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Paneer Dishes, Rich Gravies<br>Kebabs (non-tandoor), Kulcha<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Cream · Butter · Whole Spices · Nuts</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🧃 Pantry</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Cold Salads, Sandwiches<br>Mocktails, Fresh Juices<br>Starters, Cold Desserts<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Fresh Produce · Dairy · Fruits</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🔥 Tandoor</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Naan, Tandoori Roti<br>Tandoori Chicken, Seekh Kebab<br>Boti &amp; Paneer Tikka<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Marinated Meats · Dough · Charcoal</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🥩 BBQ &amp; Grills</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Grilled Meats, Fish<br>Skewers, Burgers, Sliders<br>Live Grill Counter<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Marinated Meats · Sauces · Charcoal</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🌍 Continental</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Pasta, Risotto, Steaks<br>Soups, Grilled Vegetables<br>Sauces (Béchamel, Velouté)<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Olive Oil · Herbs · Cream · Cheese</span></div>
+        </div>
+
+        <div style="background:#fff4ef;border:2px solid var(--kitchen);border-radius:8px;padding:10px 12px;min-width:150px;">
+          <div style="font-size:12px;font-weight:700;color:var(--kitchen);margin-bottom:4px;">🎂 Bakery &amp; Cafeteria</div>
+          <div style="font-size:10.5px;color:#555;line-height:1.6;">Breads, Cakes, Pastries<br>Croissants, Cookies<br>Coffee, Teas, Hot Chocolate<br><span style="color:#999;font-family:'DM Mono',monospace;font-size:9.5px;">Flour · Butter · Sugar · Coffee Beans</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Kitchen indent flow -->
+    <div class="sh"><span class="sh-tag">DAILY INDENT &amp; CONSUMPTION FLOW</span><span class="sh-ttl">Morning Indent → Store Issues → Prep → KOT Fires → Auto Deduction → Closing Stock Reported</span></div>
+    <div class="row">
+      <div class="oval oval-g">Day Start<br>(Each Section)</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Section Chef<br>Checks Inventory</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Raise Daily<br>Ingredient Indent</div>
+      <div class="arr"></div>
+      <div class="col" style="gap:3px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:#888;font-weight:700;padding:2px 0;">INDENT GOES TO ↓</div>
+        <div class="bx bx-go sm">Main Store<br>Reviews &amp; Issues</div>
+      </div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Stock Available in Store?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span>
+          <div class="bx bx-ki sm">Ingredients Issued<br>to Section ✓</div>
+        </div>
+        <div class="bi"><span class="lbl ln">SHORT →</span>
+          <div class="bx bx-re sm">🔔 Alert Store Mgr<br>Emergency PO Raised</div>
+        </div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Mise en Place<br>/ Prep Done</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">KOT Received<br>→ Dish Prepared</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Recipe-Based<br>Auto Deduction</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-re"><span>EOD Variance?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">Log Wastage /<br>Spoilage</div></div>
+        <div class="bi"><span class="lbl ln">OK →</span><div class="para para-ki"><span>Section Closing<br>Stock ✓</span></div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="para para-go"><span>Closing Data →<br>Main Store Ledger</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-ki">Each section raises its own indent — no cross-section sharing</span>
+      <span class="chip c-ki">Indent approved by Head Chef before going to store</span>
+      <span class="chip c-ki">Recipe master links each menu item to its raw materials</span>
+      <span class="chip c-ki">KOT fires → auto-deducts from section stock in real-time</span>
+      <span class="chip c-ki">Section-wise food cost % calculated daily</span>
+      <span class="chip c-ki">Wastage reason codes: Spoilage / Prep Waste / Over-portion / Spillage</span>
+      <span class="chip c-ki">Leftover / carry-forward stock logged at EOD per section</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── H3: BAR ── -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--bar);background:#f8f0ff;">
+    <span class="ico">🍸</span><span class="nm" style="color:var(--bar);">H3. Bar<br>Inventory</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">BAR CAPTAIN / BARTENDER</span><span class="sh-ttl">Daily Indent from Main Store → Bar Opening Stock → KOT → Peg/ml Deduction → Closing Stock + Reconciliation</span></div>
+
+    <!-- Bar stock categories -->
+    <div style="background:#fff;border:2px solid #b080c0;border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:var(--bar);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;">🍾 BAR STOCK CATEGORIES</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:8px;padding:9px 12px;min-width:145px;">
+          <div style="font-size:11px;font-weight:700;color:var(--bar);margin-bottom:4px;">🥃 IMFL / Spirits</div>
+          <div style="font-size:10.5px;color:#444;line-height:1.5;">Whisky, Rum, Vodka, Gin<br>Brandy, Tequila, Liqueurs<br><span style="color:#888;font-family:'DM Mono',monospace;font-size:9.5px;">Tracked: Bottle → Peg → ml</span></div>
+        </div>
+
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:8px;padding:9px 12px;min-width:145px;">
+          <div style="font-size:11px;font-weight:700;color:var(--bar);margin-bottom:4px;">🍺 Beer &amp; Draught</div>
+          <div style="font-size:10.5px;color:#444;line-height:1.5;">Bottled Beer (Domestic + Import)<br>Draught Beer Kegs<br><span style="color:#888;font-family:'DM Mono',monospace;font-size:9.5px;">Tracked: Bottle / Keg → ml</span></div>
+        </div>
+
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:8px;padding:9px 12px;min-width:145px;">
+          <div style="font-size:11px;font-weight:700;color:var(--bar);margin-bottom:4px;">🍷 Wine</div>
+          <div style="font-size:10.5px;color:#444;line-height:1.5;">Red, White, Rosé, Sparkling<br>By Bottle / By Glass<br><span style="color:#888;font-family:'DM Mono',monospace;font-size:9.5px;">Tracked: Bottle → Pour → ml</span></div>
+        </div>
+
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:8px;padding:9px 12px;min-width:145px;">
+          <div style="font-size:11px;font-weight:700;color:var(--bar);margin-bottom:4px;">🍹 Mixers &amp; Syrups</div>
+          <div style="font-size:10.5px;color:#444;line-height:1.5;">Tonic, Soda, Cola, Ginger Beer<br>Grenadine, Blue Curacao Syrup<br>Lime Juice, Bitters<br><span style="color:#888;font-family:'DM Mono',monospace;font-size:9.5px;">Tracked: ml per cocktail recipe</span></div>
+        </div>
+
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:8px;padding:9px 12px;min-width:145px;">
+          <div style="font-size:11px;font-weight:700;color:var(--bar);margin-bottom:4px;">☕ Coffee &amp; Tea (Café Bar)</div>
+          <div style="font-size:10.5px;color:#444;line-height:1.5;">Espresso Beans, Filter Coffee<br>Assorted Teas, Hot Chocolate<br>Milk, Cream, Sugar<br><span style="color:#888;font-family:'DM Mono',monospace;font-size:9.5px;">Tracked: gram / shot</span></div>
+        </div>
+
+        <div style="background:var(--bar-l);border:1.5px solid var(--bar);border-radius:8px;padding:9px 12px;min-width:145px;">
+          <div style="font-size:11px;font-weight:700;color:var(--bar);margin-bottom:4px;">🍋 Garnish &amp; Perishables</div>
+          <div style="font-size:10.5px;color:#444;line-height:1.5;">Lemons, Limes, Mint<br>Olives, Cherries, Salt rim<br>Fresh Fruits for Mocktails<br><span style="color:#888;font-family:'DM Mono',monospace;font-size:9.5px;">Tracked: piece / gm</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bar flow -->
+    <div class="sh"><span class="sh-tag">DAILY BAR FLOW</span><span class="sh-ttl">Morning Indent → Main Store Issues → Opening Count → KOT Serves → Peg/ml Deduction → Closing Reconciliation</span></div>
+    <div class="row">
+      <div class="oval oval-g">Bar Opens</div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Bar Captain:<br>Opening Stock Count</div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Raise Daily<br>Indent to Main Store</div>
+      <div class="arr"></div>
+      <div class="col" style="gap:3px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:#888;font-weight:700;padding:2px 0;">INDENT GOES TO ↓</div>
+        <div class="bx bx-go sm">Main Store Issues<br>Liquor &amp; Consumables</div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Bottles Received<br>+ Counted &amp; Signed</div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">🟣 Bar KOT Received<br>from Captain / QR</div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Bartender Prepares<br>Drink</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-pu"><span>Drink Type?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl" style="color:var(--bar);font-size:10px;">SPIRIT →</span><div class="bx bx-ba sm">Peg (30ml/60ml)<br>Auto-deducted</div></div>
+        <div class="bi"><span class="lbl" style="color:var(--bar);font-size:10px;">COCKTAIL →</span><div class="bx bx-ba sm">Recipe ml-wise<br>Deduction</div></div>
+        <div class="bi"><span class="lbl" style="color:var(--bar);font-size:10px;">DRAUGHT →</span><div class="bx bx-ba sm">ml from Keg<br>Deducted</div></div>
+        <div class="bi"><span class="lbl" style="color:var(--bar);font-size:10px;">BOTTLE →</span><div class="bx bx-ba sm">1 Bottle<br>Deducted</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Drink Served ✓</div>
+      <div class="arr"></div>
+      <div class="bx bx-ba">Bar Closes:<br>Physical Count</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-pu"><span>Actual vs Used Match?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">MATCH ✅ →</span><div class="para para-ba"><span>Closing Stock ✓</span></div></div>
+        <div class="bi"><span class="lbl ln">VARIANCE ❌ →</span>
+          <div class="bx bx-re sm">Log Variance:<br>Spillage / Theft / Over-pour</div>
+          <div class="arr"></div>
+          <div class="bx bx-re sm">Manager<br>Notified</div>
+        </div>
+      </div>
+      <div class="arr"></div>
+      <div class="para para-go"><span>Closing Data →<br>Main Store Ledger</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-ba">Indent raised daily to Main Store — no direct vendor purchase at Bar</span>
+      <span class="chip c-ba">Every bottle has a unique code — tracked from store to bar to glass</span>
+      <span class="chip c-ba">Peg sizes configurable: 30ml / 60ml / 90ml per spirit</span>
+      <span class="chip c-ba">Cocktail recipe master: each drink deducts exact ml of each ingredient</span>
+      <span class="chip c-ba">POS Sales qty vs. Physical consumption reconciled daily</span>
+      <span class="chip c-ba">Happy Hour flag: discounted price tracked separately in consumption report</span>
+      <span class="chip c-ba">Variance reasons: Spillage / Over-pour / Breakage / Theft / Complimentary</span>
+      <span class="chip c-ba">Bar closing stock feeds back to Main Store for next day planning</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ I: PURCHASE ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--gold);background:#fefbee;">
+    <span class="ico">🚚</span><span class="nm" style="color:var(--gold);">I. Purchase<br>&amp; Vendor</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">STORE / ACCOUNTS</span><span class="sh-ttl">Requisition → PO → Manager Approval → GRN → QC → Stock In / Return → Invoice</span></div>
+    <div class="row">
+      <div class="para para-pu"><span>Purchase<br>Requisition</span></div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Select Vendor /<br>Get Quotation</div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Create PO</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>PO Approval Needed?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">Manager Approves PO</div></div>
+        <div class="bi"><span class="lbl ln">AUTO →</span><div class="bx bx-go sm">PO Sent to Vendor</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Goods Received<br>(GRN)</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Quality OK?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">ACCEPTED →</span><div class="bx bx-gr sm">Add to Stock ✓</div></div>
+        <div class="bi"><span class="lbl ln">REJECTED →</span><div class="bx bx-re sm">Return to Vendor<br>Debit Note</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Book Invoice</div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Schedule Payment</div>
+      <div class="arr"></div>
+      <div class="para para-bl"><span>Accounts Payable<br>Updated</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-go">Vendor Rate Comparison</span>
+      <span class="chip c-go">Credit Period Tracking</span>
+      <span class="chip c-go">Multiple Vendors per Item</span>
+      <span class="chip c-go">Partial GRN</span>
+      <span class="chip c-go">Direct Purchase (Cash Memo)</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ J: STAFF, ROLES & ACCESS ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--blue);background:#eef4fb;">
+    <span class="ico">👥</span><span class="nm" style="color:var(--blue);">J. Roles<br>&amp; Access</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">ACCESS CONTROL / HR / OPERATIONS</span><span class="sh-ttl">7 Roles · Level-Based Permissions · Every Action Audit-Logged · Shift Management · Payroll</span></div>
+
+    <!-- LEVEL LEGEND -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:10px 14px;background:#f4f2ff;border:1.5px solid #c8c0f0;border-radius:8px;">
+      <span style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:#444;letter-spacing:.5px;margin-right:4px;">ACCESS LEVELS →</span>
+      <span style="background:var(--purple-l);border:1.5px solid var(--purple);color:var(--purple);font-size:10px;font-family:'DM Mono',monospace;padding:3px 11px;border-radius:20px;font-weight:700;">L1 · FIELD STAFF</span>
+      <span style="background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue);font-size:10px;font-family:'DM Mono',monospace;padding:3px 11px;border-radius:20px;font-weight:700;">L2 · OPERATIONS</span>
+      <span style="background:var(--gold-l);border:1.5px solid var(--gold);color:var(--gold);font-size:10px;font-family:'DM Mono',monospace;padding:3px 11px;border-radius:20px;font-weight:700;">L3 · PROCUREMENT</span>
+      <span style="background:var(--dark);color:#fbbf24;font-size:10px;font-family:'DM Mono',monospace;padding:3px 11px;border-radius:20px;font-weight:700;">L5 · FULL ACCESS</span>
+      <span style="margin-left:8px;font-size:10.5px;font-family:'DM Mono',monospace;color:#888;">✅ CAN DO &nbsp;·&nbsp; ❌ CANNOT DO</span>
+    </div>
+
+    <!-- ROLE CARDS GRID -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:18px;">
+
+      <!-- 1. WAITER / FLOOR MANAGER — L1 -->
+      <div style="border:2px solid var(--purple);border-radius:10px;overflow:hidden;background:#fff;">
+        <div style="background:var(--purple);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="font-size:24px;line-height:1;">🧑‍🍳</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Waiter / Floor Manager</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;margin-top:2px;">Captain · Steward · Server · FOH</div>
+            </div>
+          </div>
+          <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;white-space:nowrap;">L1 · FIELD STAFF</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div style="padding:12px 13px;border-right:1.5px solid var(--purple-l);">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;margin-bottom:8px;">✅ CAN DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View live floor — <b>own section only</b></div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Punch KOTs for their tables</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Add items to running KOT</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View menu &amp; item availability</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Mark items as served</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Raise bill for their tables</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Apply loyalty point redemption</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Take payment (Cash / UPI / Card)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View own sales performance</div>
+            </div>
+          </div>
+          <div style="padding:12px 13px;">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:8px;">❌ CANNOT DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Apply discounts</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Cancel / void KOT items</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access inventory</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View other sections' floors</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Edit menu or pricing</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View financial reports</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access guest CRM profiles</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CASHIER — L1 -->
+      <div style="border:2px solid var(--teal);border-radius:10px;overflow:hidden;background:#fff;">
+        <div style="background:var(--teal);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="font-size:24px;line-height:1;">🧾</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Cashier</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;margin-top:2px;">Billing Desk · Front Cashier</div>
+            </div>
+          </div>
+          <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;white-space:nowrap;">L1 · FIELD STAFF</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div style="padding:12px 13px;border-right:1.5px solid var(--teal-l);">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;margin-bottom:8px;">✅ CAN DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Open &amp; settle all table bills</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Accept all payment modes</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Apply loyalty redemption</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Split bills (item / equal / custom)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Print / resend receipts</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Apply pre-set auto-discounts</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View own shift billing summary</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Manage cash drawer</div>
+            </div>
+          </div>
+          <div style="padding:12px 13px;">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:8px;">❌ CANNOT DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Apply manual discounts</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Void / cancel bills</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access inventory</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View floor map / KOTs</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View financial P&amp;L</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access guest CRM</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Edit menu or pricing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. MANAGER — L2 -->
+      <div style="border:2px solid var(--blue);border-radius:10px;overflow:hidden;background:#fff;">
+        <div style="background:var(--blue);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="font-size:24px;line-height:1;">🏢</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Manager</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;margin-top:2px;">Restaurant Manager · Floor In-Charge</div>
+            </div>
+          </div>
+          <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;white-space:nowrap;">L2 · OPERATIONS</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div style="padding:12px 13px;border-right:1.5px solid var(--blue-l);">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;margin-bottom:8px;">✅ CAN DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View ALL floors &amp; ALL tables</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Re-assign tables / floor managers</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Approve KOT cancellations</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Apply discounts <b>up to 10%</b></div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Override KOT status</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Manage waiting list</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View all open bills</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View floor-level sales report</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Mark tables as cleaning</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Manage floor manager roster</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Issue complimentary (with reason)</div>
+            </div>
+          </div>
+          <div style="padding:12px 13px;">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:8px;">❌ CANNOT DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access inventory management</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Discount above 10%</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Add / edit menu items</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View bar operations</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access full P&amp;L reports</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Manage vendors or POs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. BAR MANAGER — L2 -->
+      <div style="border:2px solid var(--bar);border-radius:10px;overflow:hidden;background:#fff;">
+        <div style="background:var(--bar);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="font-size:24px;line-height:1;">🍹</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Bar Manager</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;margin-top:2px;">Bar Captain · Bartender · Bar In-Charge</div>
+            </div>
+          </div>
+          <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;white-space:nowrap;">L2 · BAR OPS</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div style="padding:12px 13px;border-right:1.5px solid var(--bar-l);">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;margin-bottom:8px;">✅ CAN DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View &amp; manage all bar KOTs</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View bar inventory in real-time</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Adjust bar stock (inward / wastage)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Issue bar comp (max 1 per table)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View bar-section sales report</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ End-of-shift bottle count</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Flag bar KOT discrepancies</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Configure bar menu availability</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Manage bartender assignments</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Add bar-specific vendor notes</div>
+            </div>
+          </div>
+          <div style="padding:12px 13px;">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:8px;">❌ CANNOT DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access floor / table management</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Approve discounts on food bills</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View full revenue reports</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Create vendor POs</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access guest CRM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. HEAD CHEF — L2 -->
+      <div style="border:2px solid var(--kitchen);border-radius:10px;overflow:hidden;background:#fff;">
+        <div style="background:var(--kitchen);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="font-size:24px;line-height:1;">👨‍🍳</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Head Chef</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;margin-top:2px;">Chef de Partie · Sous Chef · Cook</div>
+            </div>
+          </div>
+          <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;white-space:nowrap;">L2 · KITCHEN OPS</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div style="padding:12px 13px;border-right:1.5px solid var(--kitchen-l);">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;margin-bottom:8px;">✅ CAN DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View all kitchen KOTs live</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Update KOT status (Preparing / Ready)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View kitchen inventory levels</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Log wastage / damage</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Mark item 86'd (out-of-stock)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View recipe cards for all dishes</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Assign cook stations per order</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Raise urgent low-stock request</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View kitchen performance report</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Approve prep-level voids (with reason)</div>
+            </div>
+          </div>
+          <div style="padding:12px 13px;">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:8px;">❌ CANNOT DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access floor or billing</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Edit menu pricing</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View full financial reports</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Manage vendors or POs</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access bar module</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. STORE MANAGER — L3 -->
+      <div style="border:2px solid var(--gold);border-radius:10px;overflow:hidden;background:#fff;">
+        <div style="background:var(--gold);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <span style="font-size:24px;line-height:1;">📦</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Store Manager</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;margin-top:2px;">Inventory &amp; Procurement In-Charge</div>
+            </div>
+          </div>
+          <span style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;white-space:nowrap;">L3 · PROCUREMENT</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;">
+          <div style="padding:12px 13px;border-right:1.5px solid var(--gold-l);">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--green);letter-spacing:.7px;margin-bottom:8px;">✅ CAN DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Full inventory mgmt (all sections)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Add / edit / delete inventory items</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Define inventory categories</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Configure recipe mappings per dish</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Raise &amp; approve purchase orders</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Manage vendor list &amp; rate history</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Conduct physical stock counts</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Adjust stock (inward / wastage / transfer)</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Set low-stock thresholds &amp; alerts</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View inventory consumption reports</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ View wastage &amp; damage analytics</div>
+              <div style="font-size:11px;color:#222;line-height:1.4;">✓ Export inventory data (CSV)</div>
+            </div>
+          </div>
+          <div style="padding:12px 13px;">
+            <div style="font-size:9.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--red);letter-spacing:.7px;margin-bottom:8px;">❌ CANNOT DO</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access floor / table / billing</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ View full P&amp;L or revenue reports</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Manage staff roles or users</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Access guest CRM or marketing</div>
+              <div style="font-size:11px;color:#888;line-height:1.4;">✗ Apply discounts or voids</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. ADMIN / OWNER — FULL WIDTH L5 -->
+      <div style="border:2px solid var(--dark);border-radius:10px;overflow:hidden;background:#fff;grid-column:1 / -1;">
+        <div style="background:var(--dark);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:28px;line-height:1;">👑</span>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.3px;">Admin / Owner</div>
+              <div style="font-size:9.5px;color:rgba(255,255,255,.6);font-family:'DM Mono',monospace;margin-top:2px;">Director · Proprietor · Managing Partner</div>
+            </div>
+          </div>
+          <span style="background:var(--amber);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:4px 14px;border-radius:20px;font-weight:700;letter-spacing:.5px;">L5 · UNRESTRICTED ACCESS · ALL MODULES</span>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:5px 18px;margin-bottom:12px;">
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ All floor, table &amp; KOT actions</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ All billing · full discount authority</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Approve / deny write-offs &amp; voids</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Full inventory — all sections</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Manage all vendors and POs</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Full financial reports (P&amp;L / GST / Z)</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Manage all staff roles &amp; permissions</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Configure restaurant, floors, menus</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Full guest CRM database access</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Launch marketing campaigns</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Manage events &amp; ticketing</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Multi-outlet management</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Data export &amp; system backup</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Configure integrations (UPI / SMS / API)</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ View &amp; export all audit logs</div>
+            <div style="font-size:11.5px;color:#1a1a2e;line-height:1.5;">✅ Day close &amp; Z Report generation</div>
+          </div>
+          <div style="background:var(--dark);border-radius:7px;padding:9px 14px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">👑</span>
+            <span style="font-size:11px;color:#fbbf24;font-family:'DM Mono',monospace;font-weight:700;line-height:1.5;">Owner has override on ALL manager approvals. Every action by every role is visible in the Owner's audit trail.</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /role grid -->
+
+    <!-- SHIFT & HR FLOW -->
+    <div class="sh"><span class="sh-tag">SHIFT &amp; HR FLOW</span><span class="sh-ttl">Login → Role Verified → Section Assigned → All Actions Logged → Auth Requests → Shift End → Attendance → Payroll</span></div>
+    <div class="row">
+      <div class="oval oval-g">Shift Start</div>
+      <div class="arr"></div>
+      <div class="bx bx-bl">Staff Login<br>(PIN / Biometric)</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-bl"><span>Role Verified?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-bl sm">Access Unlocked<br>per Role Level</div></div>
+        <div class="bi"><span class="lbl ln">FAIL →</span><div class="bx bx-re sm">Access Denied<br>Alert Manager</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-bl">Section / Station<br>Assigned</div>
+      <div class="arr"></div>
+      <div class="bx bx-bl">All Actions<br>Audit Logged</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Auth Request?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">DISCOUNT →</span><div class="bx bx-am sm">Manager PIN<br>Required</div></div>
+        <div class="bi"><span class="lbl ln">VOID →</span><div class="bx bx-re sm">Manager Auth<br>+ Reason</div></div>
+        <div class="bi"><span class="lbl" style="color:var(--bar);">COMP →</span><div class="bx bx-am sm">Manager Logs<br>Complimentary</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-bl">Shift End<br>Log Out</div>
+      <div class="arr"></div>
+      <div class="bx bx-bl">Attendance<br>Auto-Marked</div>
+      <div class="arr"></div>
+      <div class="para para-bl"><span>Payroll<br>Computed</span></div>
+      <div class="arr"></div>
+      <div class="para para-gr"><span>Performance<br>Report ✓</span></div>
+    </div>
+    <div class="chips">
+      <span class="chip c-bl">Role configured once — auto-applied every login</span>
+      <span class="chip c-bl">Demo / Training mode: full nav, no data committed</span>
+      <span class="chip c-bl">Temp role elevation: Manager grants timed access with expiry</span>
+      <span class="chip c-re">All failed login attempts logged &amp; alerted to owner</span>
+      <span class="chip c-am">Incentive auto-calc: sales target vs. actual per shift</span>
+      <span class="chip c-am">KOT punch accuracy tracked per staff for appraisal</span>
+      <span class="chip c-go">Leave &amp; overtime managed in HR sub-module</span>
+      <span class="chip c-pu">Every action: staff ID + timestamp + role + device ID</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ K: CRM ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--red);background:#fff0f0;">
+    <span class="ico">❤️</span><span class="nm" style="color:var(--red);">K. CRM &amp;<br>Loyalty</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">GUEST RELATIONS</span><span class="sh-ttl">Profile → Loyalty Points → Segment → Campaign → Feedback → Review</span></div>
+    <div class="row">
+      <div class="bx bx-re">Guest Profile<br>Updated</div>
+      <div class="arr"></div>
+      <div class="bx bx-re">Visit History<br>Logged</div>
+      <div class="arr"></div>
+      <div class="bx bx-re">Loyalty Points<br>Awarded</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-re"><span>Guest Segment?</span></div></div><div class="arr"></div>
+      <div class="col">
+        <div class="bx bx-re sm">⭐ VIP / Platinum</div>
+        <div class="bx bx-re sm">🔄 Regular (Gold)</div>
+        <div class="bx bx-re sm">🆕 New Guest</div>
+        <div class="bx bx-am sm">😴 Lapsed (30+ days)</div>
+      </div>
+      <div class="arr"></div>
+      <div class="col">
+        <div class="bx bx-am sm">📲 WhatsApp</div>
+        <div class="bx bx-am sm">📧 Email</div>
+        <div class="bx bx-am sm">💬 SMS</div>
+        <!-- <div class="bx bx-am sm">🎂 Birthday Offer</div> -->
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-re">Feedback<br>Collected</div>
+      <!-- <div class="arr"></div> -->
+      <div class="dw"><div class=""><span></span></div></div>
+      <div class="br">
+        <!-- <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">Manager Escalation</div></div> -->
+        <!-- <div class="bi"><span class="lbl ln">POSITIVE →</span><div class="bx bx-gr sm">Request Google/<br>Zomato Review</div></div> -->
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip c-re">Anniversary / Occasion Tracking</span>
+      <span class="chip c-re">Gift Voucher Issuance &amp; Redemption</span>
+      <span class="chip c-re">Dietary Preference History</span>
+      <span class="chip c-re">Referral Program</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ L: REPORTS & ANALYTICS ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--blue);background:#eef4fb;">
+    <span class="ico">📊</span><span class="nm" style="color:var(--blue);">L. Reports<br>&amp; Analytics</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">ROLE-BASED ACCESS</span><span class="sh-ttl">6 Report Categories · Access Controlled by Role · Real-time + Scheduled · Export PDF / Excel / CSV</span></div>
+
+    <!-- ACCESS KEY -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+      <span style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:#555;letter-spacing:.6px;">ACCESS KEY:</span>
+      <span style="background:var(--dark);color:#fff;font-size:10.5px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;font-weight:700;">👑 ADMIN / OWNER</span>
+      <span style="background:var(--blue-l);border:1.5px solid var(--blue);color:var(--blue);font-size:10.5px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;font-weight:700;">📊 STORE MGR</span>
+      <span style="background:var(--amber-l);border:1.5px solid var(--amber);color:#92400e;font-size:10.5px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;font-weight:700;">🍽 FLOOR MGR</span>
+      <span style="background:var(--green-l);border:1.5px solid var(--green);color:var(--green);font-size:10.5px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;font-weight:700;">🧾 CASHIER</span>
+    </div>
+
+    <!-- 6 REPORT CARDS GRID -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:16px;">
+
+      <!-- 1. SALES REPORTS -->
+      <div style="background:#fff;border:2px solid var(--blue);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--blue);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">💰</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px;">SALES REPORTS</span>
+          </div>
+          <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9.5px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:700;">👑 ADMIN · 🍽  MGR</span>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--blue);">Revenue by Channel</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Dine-in vs Bar vs Delivery (Swiggy/Zomato/Own) — side-by-side comparison, daily &amp; period view</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--blue);">Revenue by Time Period</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Hourly / Daily / Weekly / Monthly / Custom range — peak hour heatmap</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--blue);">Average Per Cover (APC)</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Total revenue ÷ covers served — tracked by shift, section, day of week</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--blue);">Table Turnover Rate</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Avg time per table occupied — section-wise, shift-wise, identifies slow tables</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">5</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--blue);">Top-Selling Items</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Top 10 / Bottom 10 by qty &amp; revenue — category-wise, section-wise, trend chart</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. INVENTORY REPORTS -->
+      <div style="background:#fff;border:2px solid var(--gold);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--gold);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">📦</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px;">INVENTORY REPORTS</span>
+          </div>
+          <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9.5px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:700;">👑 ADMIN · 📊 STORE ,MGR</span>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--gold);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--gold);">Daily Consumption by Category</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Main Kitchen (section-wise) + Bar + Packaging + Cleaning — issued vs. actual consumed</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--gold);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--gold);">Wastage &amp; Damage Log</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Item · Qty · Reason (Spoilage / Spillage / Over-portion / Breakage) · Section · Staff</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--gold);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--gold);">Low Stock Items List</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">All items at or below reorder level — with current qty, reorder qty, preferred vendor</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--gold);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--gold);">Vendor Purchase History</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">PO-wise GRN log, price trends per vendor, returns &amp; debit notes, payment status</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--gold);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">5</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--gold);">Cost per Dish Analysis</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Recipe cost vs. selling price → food cost % → margin per dish — category comparison</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. STAFF REPORTS -->
+      <div style="background:#fff;border:2px solid var(--amber);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--amber);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">👨‍💼</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px;">STAFF REPORTS</span>
+          </div>
+          <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9.5px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:700;">👑 ADMIN ·  MGR</span>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--amber);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#92400e;">Sales per Floor Manager</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Revenue attributed per Captain / Steward — by shift, section, covers served</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--amber);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#92400e;">Tables Handled per Shift</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">No. of tables opened / closed per staff per shift — occupancy &amp; pace metrics</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--amber);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#92400e;">KOT Punch Accuracy</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">KOTs raised vs. modified/cancelled — measures order accuracy per steward</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--amber);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#92400e;">Void / Cancel Frequency</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Cancellations per staff — reason breakdown, manager auth log, trend alert</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--amber);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">5</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#92400e;">Incentive Calculation</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Auto-calculated based on sales targets, upsells, covers — ready for payroll</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. LOYALTY REPORTS -->
+      <div style="background:#fff;border:2px solid var(--red);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--red);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">⭐</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px;">LOYALTY REPORTS</span>
+          </div>
+          <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9.5px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:700;">👑 ADMIN/MGR ONLY</span>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--red);">Guest Retention Rate</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">% of guests who returned within 30 / 60 / 90 days — new vs. repeat split</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--red);">Points Earned vs. Redeemed</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Total points issued vs. consumed — outstanding liability, redemption trend</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--red);">Tier Distribution</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">No. of guests in each tier: New / Silver / Gold / Platinum — movement chart</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--red);">Repeat Visit Frequency</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Avg visits per guest per month — segmented by tier, channel, day of week</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">5</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--red);">Campaign ROI</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Per campaign: messages sent → opened → visits generated → revenue → cost vs. return</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. EVENT REPORTS -->
+      <div style="background:#fff;border:2px solid var(--purple);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--purple);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">🎉</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px;">EVENT REPORTS</span>
+          </div>
+          <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9.5px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:700;">👑 ADMIN /MGR ONLY</span>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--purple);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--purple);">Event Revenue vs. Cost</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Total F&amp;B revenue + ticket revenue minus event costs (décor, artist, venue setup)</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--purple);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--purple);">Tickets Sold / Attendance</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Tickets issued vs. scanned at entry — by ticket type (VIP / General / Couple)</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--purple);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--purple);">Table vs. Entry Split</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Revenue from pre-booked tables vs. walk-in entry — avg spend per type</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--purple);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--purple);">No-Show Rate</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Booked vs. actual turnout — deposit forfeiture log, no-show trend by event type</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. AUDIT & COMPLIANCE -->
+      <div style="background:#fff;border:2px solid var(--green);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--green);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">🧾</span>
+            <span style="font-size:13px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px;">AUDIT &amp; COMPLIANCE</span>
+          </div>
+          <span style="background:rgba(255,255,255,.18);color:#fff;font-size:9.5px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:700;">👑 ADMIN /MG ONLY</span>
+        </div>
+        <div style="padding:12px 14px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--green);">All Discount Approvals Log</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Every discount applied — % or flat, approved by whom, on which bill, timestamp</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--green);">All Voids &amp; Cancellations Log</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">Every KOT/bill void — item, qty, reason, staff, manager auth, time — full trail</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--green);">GST Filing Data Export</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">CGST / SGST / IGST breakup — GSTR-1 ready export, HSN-wise, B2B &amp; B2C split</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;">
+              <span style="background:var(--green);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--green);">Z Report — Day Close</div>
+                <div style="font-size:11px;color:#555;line-height:1.5;">End-of-day summary: total sales, payment mode breakup, discounts, voids, cash in drawer — signed off by manager</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- HOW REPORTS ARE ACCESSED & DELIVERED -->
+    <div class="sh"><span class="sh-tag">HOW REPORTS WORK</span><span class="sh-ttl">Trigger → Filter → Generate → Deliver → Act</span></div>
+    <div class="row">
+      <div class="dw"><div class="d d-bl"><span>Report Trigger?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">REAL-TIME →</span><div class="bx bx-bl sm">Live Dashboard<br>(auto-refresh)</div></div>
+        <div class="bi"><span class="lbl lb">SCHEDULED →</span><div class="bx bx-bl sm">Daily / Weekly /<br>Monthly auto-email</div></div>
+        <div class="bi"><span class="lbl" style="color:var(--purple);">ON-DEMAND →</span><div class="bx bx-bl sm">Staff runs report<br>from POS / portal</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-bl">Apply Filters:<br>Date · Section · Staff<br>Channel · Category</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-bl"><span>Role Has Access?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-gr sm">Report Generated ✓</div></div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-re sm">Access Denied<br>Logged in Audit Trail</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-bl"><span>Deliver Via?</span></div></div>
+      <div class="col" style="margin-left:4px;gap:4px;">
+        <div class="bx bx-bl sm">📊 POS Dashboard</div>
+        <div class="bx bx-bl sm">📱 WhatsApp / Email</div>
+        <div class="bx bx-bl sm">📄 PDF Download</div>
+        <div class="bx bx-bl sm">📊 Excel / CSV Export</div>
+        <div class="bx bx-bl sm">🖨 Print</div>
+      </div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Mismatch?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">🔔 Alert Owner /<br>Manager</div></div>
+        <div class="bi"><span class="lbl ln">CLEAN →</span><div class="para para-gr"><span>Filed &amp; Archived ✓</span></div></div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <span class="chip c-bl">Real-time live dashboard (auto-refresh every 60s)</span>
+      <span class="chip c-bl">Custom date range for any report</span>
+      <span class="chip c-bl">Comparison mode: this week vs. last week / this month vs. last month</span>
+      <span class="chip c-bl">Multi-branch rollup: all outlets in one view</span>
+      <span class="chip c-gr">Owner WhatsApp summary at 11 PM daily</span>
+      <span class="chip c-re">Anomaly alerts: sudden revenue drop, high void count, cash mismatch</span>
+      <span class="chip c-go">Food cost % alert if above threshold</span>
+      <span class="chip c-pu">All report access logged in audit trail</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ N: MENU MANAGEMENT ═══ -->
+<div class="lane">
+  <div class="ltab" style="border-color:var(--teal);background:#eafaff;">
+    <span class="ico">📖</span><span class="nm" style="color:var(--teal);">N. Menu<br>Management</span>
+  </div>
+  <div class="lbody">
+    <div class="sh"><span class="sh-tag">CHEF · MANAGER · OWNER</span><span class="sh-ttl">Menu Design · Recipe Master · Raw Material Mapping · Pricing Authority · 86'd Control · Seasonal Updates</span></div>
+
+    <!-- WHO DOES WHAT -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <div style="background:var(--kitchen-l);border:2px solid var(--kitchen);border-radius:8px;padding:10px 14px;min-width:200px;">
+        <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--kitchen);letter-spacing:.6px;margin-bottom:6px;">👨‍🍳 CHEF — CAN DO</div>
+        <div style="font-size:11px;color:#333;line-height:1.6;">✓ Add / edit / remove dishes<br>✓ Create &amp; update recipes<br>✓ Set raw material mappings<br>✓ Mark items 86'd (unavailable)<br>✓ Set prep time per dish<br>✓ Add allergen &amp; dietary tags<br>✓ Upload dish photos<br>✓ Suggest seasonal specials</div>
+        <div style="background:#fffde7;border:1.5px dashed #d97706;border-radius:4px;padding:4px 8px;margin-top:6px;font-size:10.5px;font-family:'DM Mono',monospace;color:#92400e;">⚠️ Cannot set or change prices</div>
+      </div>
+      <div style="background:var(--blue-l);border:2px solid var(--blue);border-radius:8px;padding:10px 14px;min-width:200px;">
+        <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:var(--blue);letter-spacing:.6px;margin-bottom:6px;">🏢 MANAGER — CAN DO</div>
+        <div style="font-size:11px;color:#333;line-height:1.6;">✓ Review &amp; approve chef's changes<br>✓ Set / update selling prices<br>✓ Configure combo &amp; bundle deals<br>✓ Set Happy Hour pricing rules<br>✓ Enable / disable categories<br>✓ Manage modifiers &amp; add-ons<br>✓ Sync menu to QR &amp; aggregators<br>✓ Run limited-time promotions</div>
+        <div style="background:#e8f4fd;border:1.5px dashed var(--blue);border-radius:4px;padding:4px 8px;margin-top:6px;font-size:10.5px;font-family:'DM Mono',monospace;color:var(--blue);">Pricing changes need Owner approval above threshold</div>
+      </div>
+      <div style="background:var(--dark);border-radius:8px;padding:10px 14px;min-width:200px;">
+        <div style="font-size:10.5px;font-family:'DM Mono',monospace;font-weight:700;color:#fbbf24;letter-spacing:.6px;margin-bottom:6px;">👑 OWNER — FULL AUTHORITY</div>
+        <div style="font-size:11px;color:#ccc;line-height:1.6;">✓ Final approval on all prices<br>✓ Set GST rate per item<br>✓ Multi-outlet menu config<br>✓ Archive / restore menu items<br>✓ Set price change thresholds<br>✓ View full menu cost analysis<br>✓ Approve seasonal menu launch<br>✓ Override any chef/manager change</div>
+      </div>
+    </div>
+
+    <!-- 4 SECTION CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-bottom:14px;">
+
+      <!-- MENU STRUCTURE -->
+      <div style="background:#fff;border:2px solid var(--teal);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--teal);padding:9px 13px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">🍽</span>
+          <span style="font-size:12px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;">MENU STRUCTURE</span>
+        </div>
+        <div style="padding:11px 13px;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Categories:</b> Soups · Starters · Mains · Biryani · Breads · Desserts · Beverages · Bar</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Section routing:</b> Each item tagged to kitchen section (Indian / Chinese / Pizza etc.) or Bar</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Item attributes:</b> Veg 🟢 / Non-veg 🔴 / Egg 🟡 / Vegan / Jain</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Allergen tags:</b> Gluten / Nuts / Dairy / Shellfish etc.</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Course flag:</b> Starter / Main / Dessert / Drinks</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Variants:</b> Half / Full / Small / Medium / Large</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Modifiers:</b> Add-ons / Remove / Extra / Spice level</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Availability:</b> Lunch only / Dinner only / All day / Seasonal</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Status:</b> Active / 86'd (live) / Archived / Draft</div>
+        </div>
+      </div>
+
+      <!-- RECIPE MASTER -->
+      <div style="background:#fff;border:2px solid var(--kitchen);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--kitchen);padding:9px 13px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">📋</span>
+          <span style="font-size:12px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;">RECIPE MASTER</span>
+        </div>
+        <div style="padding:11px 13px;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Per dish:</b> Step-by-step method, plating guide, reference photo</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Yield:</b> Recipe qty → no. of portions output</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Portion size:</b> Grams / ml per serving</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Prep time:</b> Target in minutes — feeds KOT timer</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Cooking method:</b> Tandoor / Grill / Fried / Steamed / Raw</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Station:</b> Which kitchen section handles this dish</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Versions:</b> Recipe versioning — chef can update, old version archived</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Chef access:</b> View &amp; edit; Owner / Manager approves publish</div>
+          <div style="background:#fffde7;border:1.5px dashed #d97706;border-radius:4px;padding:4px 8px;margin-top:4px;font-size:10.5px;font-family:'DM Mono',monospace;color:#92400e;">Recipe change triggers raw material &amp; cost recalculation</div>
+        </div>
+      </div>
+
+      <!-- RAW MATERIAL MAPPING -->
+      <div style="background:#fff;border:2px solid var(--gold);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--gold);padding:9px 13px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">🥕</span>
+          <span style="font-size:12px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;">RAW MATERIAL MAPPING</span>
+        </div>
+        <div style="padding:11px 13px;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Each dish ↔ ingredients:</b> exact qty per serving linked to Main Store items</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Unit mapping:</b> Store unit (kg) → Recipe unit (gm) conversion handled auto</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>KOT fires → deduction:</b> recipe qty × covers auto-deducted from section stock</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Substitute ingredient:</b> if primary OOS, system suggests mapped substitute</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Wastage factor:</b> configured per ingredient (e.g. onion 10% peeling loss)</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Semi-processed items:</b> e.g. "Gravy Base" can itself be a recipe with raw materials</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Bar mapping:</b> Cocktail → exact ml of each spirit + mixer + garnish</div>
+          <div style="background:#fffde7;border:1.5px dashed #d97706;border-radius:4px;padding:4px 8px;margin-top:4px;font-size:10.5px;font-family:'DM Mono',monospace;color:#92400e;">Mapping change auto-recalculates food cost % per dish</div>
+        </div>
+      </div>
+
+      <!-- PRICING & APPROVAL -->
+      <div style="background:#fff;border:2px solid var(--amber);border-radius:10px;overflow:hidden;">
+        <div style="background:var(--amber);padding:9px 13px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;">💰</span>
+          <span style="font-size:12px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;">PRICING &amp; APPROVAL FLOW</span>
+        </div>
+        <div style="padding:11px 13px;display:flex;flex-direction:column;gap:5px;">
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Chef proposes:</b> dish added with cost, suggested margin — no price set</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Manager sets price:</b> reviews food cost %, applies desired margin → sets MRP</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Owner approves:</b> price change above threshold → Owner OTP / PIN required</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>GST rate:</b> Owner assigns correct slab (5% / 12% / 18%) per item</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Combo pricing:</b> Manager creates bundle; cost vs. saving shown</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Happy Hour:</b> time-based price rules configured by Manager</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Price history:</b> all changes logged with who changed it and when</div>
+          <div style="font-size:11px;color:#333;line-height:1.5;"><b>Aggregator price:</b> can be different from dine-in price — managed separately</div>
+          <div style="background:#e8f5ee;border:1.5px dashed var(--green);border-radius:4px;padding:4px 8px;margin-top:4px;font-size:10.5px;font-family:'DM Mono',monospace;color:var(--green);">Published price auto-syncs to QR menu, POS, aggregators</div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+    <!-- MENU WORKFLOW FLOW -->
+    <div class="sh"><span class="sh-tag">MENU CHANGE WORKFLOW</span><span class="sh-ttl">Chef Proposes → Recipe + Raw Materials Mapped → Manager Sets Price → Owner Approves → Publish → Sync Everywhere</span></div>
+    <div class="row">
+      <div class="oval oval-g">Chef Creates<br>New Dish</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">Add Recipe:<br>Steps / Yield / Prep Time</div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Map Raw Materials<br>(qty per portion)</div>
+      <div class="arr"></div>
+      <div class="bx bx-ki">System Calculates<br>Food Cost %</div>
+      <div class="arr"></div>
+      <div class="bx bx-am">Manager Reviews<br>+ Sets Selling Price</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Price Above Threshold?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-re sm">🔐 Owner Approval<br>(OTP / PIN)</div></div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-am sm">Manager Publishes<br>Directly</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="bx bx-te">Auto-Sync:<br>POS · QR · Aggregator</div>
+      <div class="arr"></div>
+      <div class="para para-te"><span>Dish Live on<br>All Channels ✓</span></div>
+    </div>
+
+    <!-- 86'd FLOW -->
+    <div class="hdiv"></div>
+    <div class="sh"><span class="sh-tag">86'D — ITEM UNAVAILABILITY FLOW</span><span class="sh-ttl">Chef Marks 86'd → System Hides from QR + POS → Restock Alert → Chef Restores → Back Live</span></div>
+    <div class="row">
+      <div class="bx bx-ki">Chef / Head Chef<br>Marks Item 86'd</div>
+      <div class="arr"></div>
+      <div class="bx bx-re">Item Hidden:<br>POS + QR + Aggregator</div>
+      <div class="arr"></div>
+      <div class="bx bx-go">Store Notified:<br>Ingredient Low Stock</div>
+      <div class="arr"></div>
+      <div class="dw"><div class="d d-am"><span>Restocked?</span></div></div>
+      <div class="br">
+        <div class="bi"><span class="lbl ly">YES →</span><div class="bx bx-ki sm">Chef Marks Available<br>→ Item Goes Live</div></div>
+        <div class="bi"><span class="lbl ln">NO →</span><div class="bx bx-re sm">Remains 86'd<br>until stock arrives</div></div>
+      </div>
+      <div class="arr"></div>
+      <div class="para para-te"><span>Item Restored<br>on All Channels ✓</span></div>
+    </div>
+
+    <div class="chips">
+      <span class="chip c-ki">Chef: full recipe &amp; menu edit rights — no pricing access</span>
+      <span class="chip c-am">Manager: sets prices &amp; combos — above threshold needs Owner OTP</span>
+      <span class="chip c-go">Raw material mapping auto-deducts stock on every KOT</span>
+      <span class="chip c-go">Food cost % calculated live as ingredient prices change</span>
+      <span class="chip c-te">Single publish → auto-syncs POS, QR menu, Swiggy, Zomato</span>
+      <span class="chip c-ki">Recipe versioning — old versions archived, not deleted</span>
+      <span class="chip c-ki">86'd propagates instantly to all channels in real-time</span>
+      <span class="chip c-am">Combo &amp; Happy Hour pricing with time rules</span>
+      <span class="chip c-am">Aggregator price can differ from dine-in price</span>
+      <span class="chip c-go">Wastage factor per ingredient built into cost calculation</span>
+      <span class="chip c-pu">Full price change audit log: who, what, when, before &amp; after</span>
+    </div>
+  </div>
+</div>
+
+
+</div>
+</div>
+</body>
+</html>
