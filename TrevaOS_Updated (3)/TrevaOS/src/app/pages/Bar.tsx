@@ -3,13 +3,17 @@ import {
   Wine, MessageSquare, Send, Bot, ShoppingCart, Clock, Users,
   TrendingUp, DollarSign, Package, AlertTriangle, Plus, Minus, X,
   ChevronRight, Star, Sparkles, RefreshCw, Beer, Coffee, Martini,
-  GlassWater, Zap
+  GlassWater, Zap, CheckCircle2, Timer
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "../components/ui/dialog";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../components/ui/table";
@@ -35,11 +39,73 @@ const barMenu = [
   { id: 15, name: "Lemonade", category: "Mocktails", price: 120, available: true, popular: false },
 ];
 
-const barOrders = [
-  { id: "B001", table: "Bar 3", items: "Old Fashioned x2, Beer x1", total: 1020, status: "preparing", time: "14:32" },
-  { id: "B002", table: "Bar 1", items: "Mojito x1, Negroni x1", total: 830, status: "ready", time: "14:28" },
-  { id: "B003", table: "Table 8", items: "Kingfisher x3, Margarita x2", total: 1320, status: "served", time: "14:15" },
-  { id: "B004", table: "Bar 5", items: "Whisky Sour x1, Espresso Martini x2", total: 1380, status: "preparing", time: "14:35" },
+type DrinkItem = {
+  name: string;
+  qty: number;
+  category?: string;
+  pegSize?: "30ml" | "60ml";
+};
+
+type BarOrderStatus = "preparing" | "ready" | "served";
+
+type BarOrder = {
+  id: string;
+  table: string;
+  items: string;
+  drinkItems: DrinkItem[];
+  total: number;
+  status: BarOrderStatus;
+  time: string;
+  targetMinutes: number;
+  startedAt: number;
+  lateReason?: string;
+  lateMarkedAt?: number;
+};
+
+const _now = Date.now();
+
+const initialBarOrders: BarOrder[] = [
+  {
+    id: "B001", table: "Bar 3",
+    items: "Old Fashioned x2, Beer x1",
+    drinkItems: [
+      { name: "Old Fashioned", qty: 2, category: "Cocktails" },
+      { name: "Kingfisher Premium", qty: 1, category: "Beer" },
+    ],
+    total: 1020, status: "preparing", time: "14:32",
+    targetMinutes: 7, startedAt: _now - 8 * 60 * 1000,
+  },
+  {
+    id: "B002", table: "Bar 1",
+    items: "Mojito x1, Negroni x1",
+    drinkItems: [
+      { name: "Mojito", qty: 1, category: "Cocktails" },
+      { name: "Negroni", qty: 1, category: "Cocktails" },
+    ],
+    total: 830, status: "ready", time: "14:28",
+    targetMinutes: 5, startedAt: _now - 12 * 60 * 1000,
+  },
+  {
+    id: "B003", table: "Table 8",
+    items: "Kingfisher x3, Margarita x2",
+    drinkItems: [
+      { name: "Kingfisher Premium", qty: 3, category: "Beer" },
+      { name: "Margarita", qty: 2, category: "Cocktails" },
+    ],
+    total: 1320, status: "served", time: "14:15",
+    targetMinutes: 8, startedAt: _now - 29 * 60 * 1000,
+  },
+  {
+    id: "B004", table: "Bar 5",
+    items: "Whisky Sour x1, Jack Daniel's x1, Espresso Martini x2",
+    drinkItems: [
+      { name: "Whisky Sour", qty: 1, category: "Cocktails" },
+      { name: "Jack Daniel's", qty: 1, category: "Spirits", pegSize: "60ml" },
+      { name: "Espresso Martini", qty: 2, category: "Cocktails" },
+    ],
+    total: 1380, status: "preparing", time: "14:35",
+    targetMinutes: 6, startedAt: _now - 3 * 60 * 1000,
+  },
 ];
 
 const barInventory = [
@@ -78,7 +144,23 @@ const suggestedQuestions = [
   "Suggest cocktails we can make with current stock",
 ];
 
+// Returns timer state for a bar order
+function getTimerState(order: BarOrder): "preparing" | "delayed" | "ready" | "served" {
+  if (order.status === "served") return "served";
+  if (order.status === "ready") return "ready";
+  const elapsedMin = (Date.now() - order.startedAt) / 60000;
+  return elapsedMin >= order.targetMinutes ? "delayed" : "preparing";
+}
+
+function formatElapsed(startedAt: number): string {
+  const totalSec = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return `${min}m ${String(sec).padStart(2, "0")}s`;
+}
+
 export function Bar() {
+  const [orders, setOrders] = useState<BarOrder[]>(initialBarOrders);
   const [cart, setCart] = useState<{ item: typeof barMenu[0]; qty: number }[]>([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [messages, setMessages] = useState<Message[]>([
@@ -87,6 +169,17 @@ export function Bar() {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Late dialog state
+  const [lateDialogOrderId, setLateDialogOrderId] = useState<string | null>(null);
+  const [lateReasonInput, setLateReasonInput] = useState("");
+
+  // 30-second tick to keep timers live
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -116,6 +209,22 @@ export function Bar() {
 
   const cartTotal = cart.reduce((sum, c) => sum + c.item.price * c.qty, 0);
 
+  const markOrderReady = (id: string) =>
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "ready" } : o));
+
+  const serveOrder = (id: string) =>
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "served" } : o));
+
+  const submitLateReason = () => {
+    if (!lateDialogOrderId) return;
+    const reason = lateReasonInput.trim() || "No reason given";
+    setOrders(prev => prev.map(o =>
+      o.id === lateDialogOrderId ? { ...o, lateReason: reason, lateMarkedAt: Date.now() } : o
+    ));
+    setLateDialogOrderId(null);
+    setLateReasonInput("");
+  };
+
   const sendMessage = async (text?: string) => {
     const userMsg = text || inputText;
     if (!userMsg.trim()) return;
@@ -130,9 +239,9 @@ BAR MENU: ${barMenu.map(i => `${i.name} (${i.category}) - ₹${i.price}, ${i.ava
 
 INVENTORY ALERTS: ${barInventory.map(i => `${i.item}: ${i.current} ${i.unit} (${i.status})`).join("; ")}
 
-TODAY'S BAR STATS: Revenue: ₹74,400. Orders: 170. Active orders: ${barOrders.filter(o => o.status !== "served").length}. Top selling: Old Fashioned (48 sold), Kingfisher Premium (72 sold), Mojito (39 sold).
+TODAY'S BAR STATS: Revenue: ₹74,400. Orders: 170. Active orders: ${orders.filter(o => o.status !== "served").length}. Top selling: Old Fashioned (48 sold), Kingfisher Premium (72 sold), Mojito (39 sold).
 
-ACTIVE ORDERS: ${barOrders.map(o => `${o.id}: ${o.items} - ${o.status}`).join("; ")}
+ACTIVE ORDERS: ${orders.map(o => `${o.id}: ${o.items} - ${o.status}`).join("; ")}
 
 Respond concisely and helpfully. Use emojis sparingly. Format numbers with ₹ for currency. If asked about cocktails you can make, check inventory and suggest based on available stock. Keep responses under 150 words unless a detailed breakdown is requested.`;
 
@@ -226,36 +335,130 @@ Respond concisely and helpfully. Use emojis sparingly. Format numbers with ₹ f
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {barOrders.map(order => (
-                  <div key={order.id} className="border rounded-xl p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-sm">{order.table}</p>
-                        <p className="text-xs text-muted-foreground">#{order.id} · {order.time}</p>
+                {orders.map(order => {
+                  const timerState = getTimerState(order);
+                  const elapsed = formatElapsed(order.startedAt);
+                  const isSecondAlert =
+                    timerState === "delayed" &&
+                    order.lateMarkedAt != null &&
+                    Date.now() - order.lateMarkedAt >= 5 * 60 * 1000;
+                  const hasSpirits = order.drinkItems.some(d => d.category === "Spirits");
+                  const isStockDeducted = order.status === "ready" || order.status === "served";
+
+                  return (
+                    <div
+                      key={order.id}
+                      className={`border rounded-xl p-4 space-y-3 ${isSecondAlert ? "border-red-400 bg-red-50" : ""}`}
+                    >
+                      {/* Second alert banner */}
+                      {isSecondAlert && (
+                        <div className="flex items-center gap-2 bg-red-600 text-white text-xs font-semibold rounded-lg px-3 py-2">
+                          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                          CRITICAL DELAY — Still not ready 5+ min after marking late
+                        </div>
+                      )}
+
+                      {/* Header row */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-sm">{order.table}</p>
+                          <p className="text-xs text-muted-foreground">#{order.id} · {order.time}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                          {/* Timer pill */}
+                          {timerState === "preparing" && (
+                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                              <Timer className="w-3 h-3" /> 🟡 {elapsed}
+                            </span>
+                          )}
+                          {timerState === "delayed" && (
+                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-700 border border-red-300 animate-pulse">
+                              <Timer className="w-3 h-3" /> 🔴 {elapsed}
+                            </span>
+                          )}
+                          {timerState === "ready" && (
+                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                              <CheckCircle2 className="w-3 h-3" /> 🟢 {elapsed}
+                            </span>
+                          )}
+
+                          <Badge className={statusColor(order.status)}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
+                        </div>
                       </div>
-                      <Badge className={statusColor(order.status)}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{order.items}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold">₹{order.total.toLocaleString()}</span>
-                      <div className="flex gap-2">
-                        {order.status === "preparing" && (
-                          <Button size="sm" variant="outline" className="text-green-700 border-green-300 h-7 text-xs">
-                            Mark Ready
-                          </Button>
-                        )}
-                        {order.status === "ready" && (
-                          <Button size="sm" className="bg-green-600 hover:bg-green-700 h-7 text-xs">
-                            Serve
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost" className="h-7 text-xs">Bill</Button>
+
+                      {/* Drink items with peg size badges */}
+                      <div className="space-y-1">
+                        {order.drinkItems.map((di, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{di.name} × {di.qty}</span>
+                            {di.pegSize && (
+                              <Badge className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0 h-4 font-semibold border border-purple-200">
+                                {di.pegSize}
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Late reason display */}
+                      {order.lateReason && (
+                        <div className="text-xs bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 text-red-700">
+                          <span className="font-semibold">Late reason:</span> {order.lateReason}
+                        </div>
+                      )}
+
+                      {/* Stock deducted badge */}
+                      {isStockDeducted && (
+                        <div className="flex items-center gap-1.5">
+                          <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] px-2 py-0.5 font-medium">
+                            <CheckCircle2 className="w-3 h-3 mr-1 inline" />
+                            Stock ✓ deducted
+                          </Badge>
+                        </div>
+                      )}
+
+                      {/* Action row */}
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">₹{order.total.toLocaleString()}</span>
+                        <div className="flex gap-2 flex-wrap justify-end">
+                          {/* Mark Late button — shown when delayed */}
+                          {timerState === "delayed" && !order.lateReason && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-300 hover:bg-red-50 h-7 text-xs"
+                              onClick={() => setLateDialogOrderId(order.id)}
+                            >
+                              Mark Late
+                            </Button>
+                          )}
+                          {order.status === "preparing" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-700 border-green-300 h-7 text-xs"
+                              onClick={() => markOrderReady(order.id)}
+                            >
+                              Mark Ready
+                            </Button>
+                          )}
+                          {order.status === "ready" && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 h-7 text-xs"
+                              onClick={() => serveOrder(order.id)}
+                            >
+                              Serve
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost" className="h-7 text-xs">Bill</Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -514,6 +717,40 @@ Respond concisely and helpfully. Use emojis sparingly. Format numbers with ₹ f
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Mark Late Dialog */}
+      <Dialog open={lateDialogOrderId !== null} onOpenChange={open => { if (!open) { setLateDialogOrderId(null); setLateReasonInput(""); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" /> Mark Order as Late
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Order <span className="font-semibold text-foreground">{lateDialogOrderId}</span> has exceeded its target prep time. Please provide a reason for the delay.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="late-reason">Reason for delay</Label>
+              <Input
+                id="late-reason"
+                placeholder="e.g. Waiting for ice, missing ingredient..."
+                value={lateReasonInput}
+                onChange={e => setLateReasonInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && submitLateReason()}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setLateDialogOrderId(null); setLateReasonInput(""); }}>
+              Cancel
+            </Button>
+            <Button className="bg-red-600 hover:bg-red-700" onClick={submitLateReason}>
+              Confirm Late
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
