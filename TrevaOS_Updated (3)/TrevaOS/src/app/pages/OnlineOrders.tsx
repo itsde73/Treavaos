@@ -53,8 +53,8 @@ interface Order {
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
-const now = new Date();
-const minsAgo = (m: number) => new Date(now.getTime() - m * 60_000);
+const LOAD_TIME = new Date();
+const minsAgo = (m: number) => new Date(LOAD_TIME.getTime() - m * 60_000);
 
 const INITIAL_ORDERS: Order[] = [
   {
@@ -292,16 +292,17 @@ const STATUS_FLOW: OrderStatus[] = [
 
 function getTimerState(order: Order): "cooking" | "ready" | "overdue" | null {
   if (!order.acceptedAt || !order.prepTime) return null;
-  if (order.status === "ready" || order.status === "packed" ||
-      order.status === "dispatched" || order.status === "delivered") return null;
+  if (["ready", "packed", "dispatched", "delivered"].includes(order.status)) return null;
+  const now = new Date();
   const elapsed = (now.getTime() - order.acceptedAt.getTime()) / 60_000;
-  if (elapsed > order.prepTime) return "overdue";
+  if (elapsed > order.prepTime + 5) return "overdue";
   if (elapsed >= order.prepTime) return "ready";
   return "cooking";
 }
 
 function getRemainingMins(order: Order): number {
   if (!order.acceptedAt || !order.prepTime) return 0;
+  const now = new Date();
   const elapsed = (now.getTime() - order.acceptedAt.getTime()) / 60_000;
   return Math.max(0, Math.round(order.prepTime - elapsed));
 }
