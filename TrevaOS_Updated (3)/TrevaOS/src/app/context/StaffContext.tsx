@@ -90,7 +90,7 @@ export const PERMISSIONS: Record<StaffRole, RolePermissions> = {
     reports: false, aiAssistant: false, cashRegister: true, inventory: false,
     kitchens: false, settings: false,
     pos_takeOrder: false, pos_assignTable: false, pos_fireKOT: false,
-    pos_fireBOT: false, pos_applyDiscount: false, pos_generateBill: true,
+    pos_fireBOT: false, pos_applyDiscount: true, pos_generateBill: true,
     pos_takePayment: true, pos_cancelOrder: false, pos_mergeTable: false,
   },
   Chef: {

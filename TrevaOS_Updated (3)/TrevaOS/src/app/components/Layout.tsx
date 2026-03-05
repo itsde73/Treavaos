@@ -5,15 +5,14 @@ import {
   ClipboardList, Users, UserCheck, Bike, CreditCard, BarChart3,
   Sparkles, Landmark, Package, ChefHat, Settings as SettingsIcon, Search,
   ChevronLeft, ChevronRight, Store, ChevronDown, ChevronUp, User, LogOut,
-  Moon, Sun, Grid3x3, Wallet, ShieldAlert, RefreshCw, Globe,
+  Moon, Sun, Grid3x3, Wallet, Globe,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { useStaff, DEMO_STAFF, type RolePermissions } from "../context/StaffContext";
+import { useStaff, type RolePermissions } from "../context/StaffContext";
 import { useAuth } from "../context/AuthContext";
 
 const ROLE_COLORS: Record<string, string> = {
@@ -112,14 +111,13 @@ const outlets = [
 ];
 
 export function Layout() {
-  const { currentStaff, permissions, setCurrentStaff } = useStaff();
+  const { currentStaff, permissions } = useStaff();
   const { authUser, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed]     = useState(false);
   const [expandedGroups, setExpandedGroups]         = useState(["Tables", "Kitchens"]);
   const [selectedOutlet, setSelectedOutlet]         = useState(outlets[0]);
   const [darkMode, setDarkMode]                     = useState(false);
-  const [showStaffSwitch, setShowStaffSwitch]       = useState(false);
   const location = useLocation();
 
   function handleLogout() {
@@ -164,10 +162,9 @@ export function Layout() {
             </Button>
           </div>
 
-          {/* Staff mini-card — click to switch */}
+          {/* Staff mini-card — static display */}
           {!sidebarCollapsed && (
-            <button onClick={() => setShowStaffSwitch(true)}
-              className="mx-2 my-2 flex items-center gap-2 p-2 rounded-lg border bg-muted/30 hover:bg-muted/60 transition-colors text-left w-[calc(100%-16px)]">
+            <div className="mx-2 my-2 flex items-center gap-2 p-2 rounded-lg border bg-muted/30 text-left w-[calc(100%-16px)]">
               <Avatar className="w-7 h-7 flex-shrink-0">
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">{currentStaff.avatar}</AvatarFallback>
               </Avatar>
@@ -177,8 +174,7 @@ export function Layout() {
                   {currentStaff.role}
                 </Badge>
               </div>
-              <RefreshCw className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-            </button>
+            </div>
           )}
 
           {/* Role-filtered navigation */}
@@ -328,9 +324,6 @@ export function Layout() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem><User className="w-4 h-4 mr-2" />Profile</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowStaffSwitch(true)}>
-                    <RefreshCw className="w-4 h-4 mr-2" />Switch Staff View
-                  </DropdownMenuItem>
                   {permissions.settings && (
                     <DropdownMenuItem asChild>
                       <Link to="/settings"><SettingsIcon className="w-4 h-4 mr-2" />Settings</Link>
@@ -350,55 +343,6 @@ export function Layout() {
           </main>
         </div>
       </div>
-
-      {/* ── Staff Switcher Modal ── */}
-      <Dialog open={showStaffSwitch} onOpenChange={setShowStaffSwitch}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />Switch Staff View
-            </DialogTitle>
-          </DialogHeader>
-
-          <p className="text-sm text-muted-foreground -mt-1 mb-3">
-            Select a staff member to preview their role-based access.
-            The sidebar and POS actions update instantly based on their permissions
-            (configured in <strong>Settings → Roles</strong>).
-          </p>
-
-          <div className="space-y-2">
-            {DEMO_STAFF.map(staff => (
-              <button key={staff.id}
-                onClick={() => { setCurrentStaff(staff); setShowStaffSwitch(false); }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all hover:shadow-sm text-left
-                  ${currentStaff.id === staff.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
-                <Avatar className="w-9 h-9 flex-shrink-0">
-                  <AvatarFallback className="bg-muted font-bold text-sm">{staff.avatar}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">{staff.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {staff.section ? `Section: ${staff.section}` : "No fixed section"}
-                  </p>
-                </div>
-                <Badge variant="outline" className={`text-xs flex-shrink-0 ${ROLE_COLORS[staff.role]}`}>
-                  {staff.role}
-                </Badge>
-                {currentStaff.id === staff.id && (
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-700">
-              This is a demo switcher. In production, each staff member logs in with their own credentials and sees only their permitted modules.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
