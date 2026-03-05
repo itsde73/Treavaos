@@ -3,8 +3,14 @@ import { useNavigate, Link } from "react-router";
 import { Store, Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
+const DEMO_ACCOUNTS = [
+  { email: "admin@trevaos.com",  password: "admin123", type: "super_admin" as const },
+  { email: "owner@downtown.com", password: "owner123", type: "outlet_owner" as const },
+  { email: "owner@mall.com",     password: "owner123", type: "outlet_owner" as const },
+];
+
 export function Login() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, authUser } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -15,9 +21,9 @@ export function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true });
+      navigate(authUser?.type === "super_admin" ? "/admin" : "/", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authUser, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +34,9 @@ export function Login() {
     const ok = login(email.trim(), password);
     setLoading(false);
     if (ok) {
-      navigate("/");
+      // Determine destination after login based on user type
+      const user = DEMO_ACCOUNTS.find(a => a.email.toLowerCase() === email.trim().toLowerCase());
+      navigate(user?.type === "super_admin" ? "/admin" : "/");
     } else {
       setError("Invalid email or password. Please try again.");
     }

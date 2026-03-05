@@ -6,7 +6,7 @@ import { useAuth, type RegisterData } from "../context/AuthContext";
 const OUTLET_OPTIONS = ["1", "2-5", "5-10", "10+"];
 
 export function Register() {
-  const { register, isAuthenticated } = useAuth();
+  const { register, isAuthenticated, authUser } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState<RegisterData>({
@@ -21,9 +21,9 @@ export function Register() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true });
+      navigate(authUser?.type === "super_admin" ? "/admin" : "/", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authUser, navigate]);
 
   function update(field: keyof RegisterData, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));

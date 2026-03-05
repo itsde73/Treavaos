@@ -172,8 +172,8 @@ function KOTCard({ item, type }: { item: KOTItem; type: "kot" | "bot" }) {
     timerState === "in-prep" ? "border-l-yellow-400" : "border-l-red-500";
 
   const cardAnim =
-    alertActive && escalated  ? "ring-2 ring-red-600 shadow-md shadow-red-200 kot-alert-urgent" :
-    alertActive               ? "ring-1 ring-red-400 kot-alert"                                  : "";
+    alertActive && escalated  ? "ring-2 ring-red-600 shadow-md shadow-red-200" :
+    alertActive               ? "ring-1 ring-red-400"                           : "";
 
   // ── Timer pill label & colours ────────────────────────────────────────────
   const timerLabel =
@@ -201,7 +201,7 @@ function KOTCard({ item, type }: { item: KOTItem; type: "kot" | "bot" }) {
 
   return (
     <>
-      <Card className={`shadow-sm border-l-4 ${borderColor} ${cardAnim} transition-all`}>
+      <Card className={`shadow-sm border-l-4 ${borderColor} ${cardAnim} transition-colors transition-shadow`} style={{ transform: "translateZ(0)" }}>
         <CardContent className="py-3 px-4">
 
           {/* ── Row 1: ID · priority flag · status badge ─────────────────── */}
