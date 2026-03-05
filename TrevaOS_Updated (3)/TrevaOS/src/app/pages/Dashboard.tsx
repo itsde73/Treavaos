@@ -11,6 +11,8 @@ import {
   ShoppingCart,
   Truck,
   Building2,
+  Trophy,
+  MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -31,6 +33,7 @@ import {
 } from "recharts";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
+import { useStaff } from "../context/StaffContext";
 
 const revenueData = [
   { date: "Mon", revenue: 24500, orders: 145 },
@@ -88,24 +91,67 @@ const staffPerformance = [
   { name: "Emily Brown", orders: 54, revenue: 14580, rating: 4.6 },
 ];
 
-export function Dashboard() {
-  return (
-    <div className="p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back! Here's what's happening today.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Export Report</Button>
-          <Button>View Details</Button>
-        </div>
-      </div>
+// ── HQ / All-Outlets mock data ────────────────────────────────────────────────
 
-      {/* Stats Cards */}
+const hqOutlets = [
+  {
+    id: 1, name: "Downtown Bistro", address: "MG Road, Bangalore",
+    status: "open" as const, revenue: 125000, orders: 423, avgTicket: 295,
+    tablesOccupied: 18, tablesTotal: 24, staff: 12,
+    trend: 12, color: "#2563EB",
+  },
+  {
+    id: 2, name: "Mall Express", address: "Phoenix Mall, Mumbai",
+    status: "open" as const, revenue: 98000, orders: 567, avgTicket: 173,
+    tablesOccupied: 14, tablesTotal: 16, staff: 8,
+    trend: 8, color: "#10B981",
+  },
+  {
+    id: 3, name: "Airport Lounge", address: "T2, Delhi Airport",
+    status: "pre-open" as const, revenue: 156000, orders: 312, avgTicket: 500,
+    tablesOccupied: 16, tablesTotal: 20, staff: 6,
+    trend: 15, color: "#F59E0B",
+  },
+  {
+    id: 4, name: "Cloud Kitchen HQ", address: "HSR Layout, Bangalore",
+    status: "open" as const, revenue: 87000, orders: 445, avgTicket: 195,
+    tablesOccupied: 0, tablesTotal: 0, staff: 5,
+    trend: -3, color: "#EF4444",
+  },
+];
+
+const hqWeeklyRevenue = [
+  { date: "Mon", downtown: 18000, mall: 14000, airport: 22000, cloud: 12000 },
+  { date: "Tue", downtown: 21000, mall: 16500, airport: 25000, cloud: 13500 },
+  { date: "Wed", downtown: 23000, mall: 15000, airport: 28000, cloud: 11000 },
+  { date: "Thu", downtown: 19500, mall: 17000, airport: 24000, cloud: 12500 },
+  { date: "Fri", downtown: 28000, mall: 20000, airport: 32000, cloud: 15000 },
+  { date: "Sat", downtown: 34000, mall: 24000, airport: 38000, cloud: 17000 },
+  { date: "Sun", downtown: 31000, mall: 22000, airport: 35000, cloud: 16000 },
+];
+
+const hqSectionRevenue = [
+  { name: "Dine-in",  value: 210000, color: "#2563EB" },
+  { name: "Delivery", value: 145000, color: "#10B981" },
+  { name: "Takeaway", value: 82000,  color: "#F59E0B" },
+  { name: "Bar",      value: 129000, color: "#9333EA" },
+];
+
+const hqAlerts = [
+  { outlet: "Downtown Bistro",  item: "Tomatoes",  current: 5,  unit: "kg",  status: "critical" },
+  { outlet: "Mall Express",     item: "Chicken",   current: 8,  unit: "kg",  status: "low"      },
+  { outlet: "Airport Lounge",   item: "Olive Oil", current: 3,  unit: "L",   status: "critical" },
+  { outlet: "Cloud Kitchen HQ", item: "Cheese",    current: 12, unit: "kg",  status: "low"      },
+];
+
+export function Dashboard() {
+  const { currentStaff } = useStaff();
+  const isAdminOrManager = currentStaff.role === "Admin" || currentStaff.role === "Manager";
+  const topOutlet = hqOutlets.reduce((a, b) => (a.revenue > b.revenue ? a : b));
+  const totalStaff = hqOutlets.reduce((s, o) => s + o.staff, 0);
+
+  const thisOutletContent = (
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -433,6 +479,271 @@ export function Dashboard() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+
+  if (!isAdminOrManager) {
+    return (
+      <div className="p-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Welcome back! Here's what's happening today.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline">Export Report</Button>
+            <Button>View Details</Button>
+          </div>
+        </div>
+        {thisOutletContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Welcome back! Here's what's happening today.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline">Export Report</Button>
+          <Button>View Details</Button>
+        </div>
+      </div>
+
+      <Tabs defaultValue="outlet">
+        <TabsList>
+          <TabsTrigger value="outlet">This Outlet</TabsTrigger>
+          <TabsTrigger value="hq">HQ Overview</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="outlet" className="mt-4">
+          {thisOutletContent}
+        </TabsContent>
+
+        <TabsContent value="hq" className="mt-4 space-y-6">
+          {/* Top Performing Outlet */}
+          <Card className="shadow-sm border-amber-200 bg-amber-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Top Performing Outlet Today
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-2xl">🏆</div>
+                <div>
+                  <p className="text-xl font-bold">{topOutlet.name}</p>
+                  <p className="text-muted-foreground text-sm flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />{topOutlet.address}
+                  </p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-2xl font-bold text-amber-600">₹{(topOutlet.revenue / 1000).toFixed(0)}K</p>
+                  <p className="text-sm text-muted-foreground">{topOutlet.orders} orders · avg ₹{topOutlet.avgTicket}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Outlet Status Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {hqOutlets.map((outlet) => (
+              <Card key={outlet.id} className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-1">
+                    <div>
+                      <CardTitle className="text-sm font-bold leading-tight">{outlet.name}</CardTitle>
+                      <p className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                        <MapPin className="w-3 h-3" />{outlet.address}
+                      </p>
+                    </div>
+                    <Badge
+                      className={`text-xs shrink-0 ${
+                        outlet.status === "open" ? "bg-green-100 text-green-700" :
+                        outlet.status === "pre-open" ? "bg-amber-100 text-amber-700" :
+                        "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {outlet.status === "open" ? "🟢 Open" : outlet.status === "pre-open" ? "🟡 Pre-Open" : "🔴 Closed"}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-muted rounded-lg p-2">
+                      <p className="font-bold text-sm">₹{(outlet.revenue / 1000).toFixed(0)}K</p>
+                      <p className="text-muted-foreground">Revenue</p>
+                    </div>
+                    <div className="bg-muted rounded-lg p-2">
+                      <p className="font-bold text-sm">{outlet.orders}</p>
+                      <p className="text-muted-foreground">Orders</p>
+                    </div>
+                    <div className="bg-muted rounded-lg p-2">
+                      <p className="font-bold text-sm">₹{outlet.avgTicket}</p>
+                      <p className="text-muted-foreground">Avg Ticket</p>
+                    </div>
+                    <div className="bg-muted rounded-lg p-2">
+                      <p className="font-bold text-sm">{outlet.staff}</p>
+                      <p className="text-muted-foreground">Staff on Duty</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Tables: {outlet.tablesOccupied}/{outlet.tablesTotal}</span>
+                    <span className={`flex items-center gap-0.5 font-medium ${outlet.trend >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {outlet.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      {Math.abs(outlet.trend)}% vs yesterday
+                    </span>
+                  </div>
+                  <Button size="sm" variant="outline" className="w-full h-7 text-xs">View Details</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Combined Revenue Chart */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Weekly Revenue — All Outlets</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={hqWeeklyRevenue}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis dataKey="date" stroke="#64748B" />
+                  <YAxis stroke="#64748B" tickFormatter={(v) => `₹${(v/1000).toFixed(0)}K`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", borderRadius: "8px" }}
+                    formatter={(value: number) => [`₹${value.toLocaleString()}`, undefined]}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="downtown" name="Downtown Bistro" stroke="#2563EB" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="mall" name="Mall Express" stroke="#10B981" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="airport" name="Airport Lounge" stroke="#F59E0B" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="cloud" name="Cloud Kitchen HQ" stroke="#EF4444" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Outlet Comparison Bar Chart */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Outlet Revenue Comparison</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={hqOutlets.map(o => ({ name: o.name.split(" ")[0], revenue: o.revenue, fill: o.color }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <XAxis dataKey="name" stroke="#64748B" />
+                    <YAxis stroke="#64748B" tickFormatter={(v) => `₹${(v/1000).toFixed(0)}K`} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #E2E8F0", borderRadius: "8px" }}
+                      formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]}
+                    />
+                    <Bar dataKey="revenue" radius={[6, 6, 0, 0]}>
+                      {hqOutlets.map((outlet, index) => (
+                        <Cell key={`cell-${index}`} fill={outlet.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Section-wise Revenue Pie Chart */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Revenue by Order Type (All Outlets)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={hqSectionRevenue}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ₹${(value/1000).toFixed(0)}K`}
+                      outerRadius={90}
+                      dataKey="value"
+                    >
+                      {hqSectionRevenue.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, "Revenue"]} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Alerts Panel */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  Combined Inventory Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {hqAlerts.map((alert, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                      <div>
+                        <p className="font-medium text-sm">{alert.item}</p>
+                        <p className="text-xs text-muted-foreground">{alert.outlet} · {alert.current} {alert.unit} remaining</p>
+                      </div>
+                      <Badge variant={alert.status === "critical" ? "destructive" : "secondary"}>
+                        {alert.status === "critical" ? "Critical" : "Low Stock"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Staff Summary */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-muted-foreground" />
+                  Staff Summary — All Outlets
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-muted rounded-xl p-4 text-center">
+                    <p className="text-2xl font-bold">{totalStaff}</p>
+                    <p className="text-sm text-muted-foreground">Total On-Duty</p>
+                  </div>
+                  <div className="bg-muted rounded-xl p-4 text-center">
+                    <p className="text-2xl font-bold">{hqOutlets.length}</p>
+                    <p className="text-sm text-muted-foreground">Active Outlets</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {hqOutlets.map((outlet) => (
+                    <div key={outlet.id} className="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
+                      <span className="font-medium">{outlet.name}</span>
+                      <span className="text-muted-foreground">{outlet.staff} staff on duty</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -94,7 +94,7 @@ export const PERMISSIONS: Record<StaffRole, RolePermissions> = {
     pos_takePayment: true, pos_cancelOrder: false, pos_mergeTable: false,
   },
   Chef: {
-    dashboard: false, menu: false, tables: false, waiterRequests: false,
+    dashboard: false, menu: true, tables: false, waiterRequests: false,
     reservations: false, pos: false, orders: false, customers: false,
     staff: false, delivery: false, expenses: false, payments: false,
     reports: false, aiAssistant: false, cashRegister: false, inventory: false,
