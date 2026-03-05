@@ -215,6 +215,12 @@ export function POS() {
   const [currentOrderId,   setCurrentOrderId]   = useState<string | null>(null);
   const [cashierSelectedId, setCashierSelectedId] = useState<string | null>(null);
   const [cashierPayMethod,  setCashierPayMethod]  = useState<"Cash"|"Card"|"UPI"|"Split">("Cash");
+  const [cashierDiscount,   setCashierDiscount]   = useState(0);
+
+  // Reset cashier discount whenever a different order is selected
+  useEffect(() => {
+    setCashierDiscount(0);
+  }, [cashierSelectedId]);
 
   // Session timer — ticks every second when session is active
   useEffect(() => {
@@ -299,6 +305,10 @@ export function POS() {
     if (!cashierSelectedId) return;
     const idx = ORDER_STORE.findIndex(o => o.id === cashierSelectedId);
     if (idx >= 0) {
+      // Apply cashier discount
+      const discAmt = ORDER_STORE[idx].subtotal * (cashierDiscount / 100);
+      ORDER_STORE[idx].discount = discAmt;
+      ORDER_STORE[idx].total = ORDER_STORE[idx].subtotal + ORDER_STORE[idx].tax - discAmt;
       ORDER_STORE[idx].status = "paid";
       ORDER_STORE[idx].paymentMethod = cashierPayMethod;
       ORDER_STORE[idx].paidAt = new Date().toISOString();
@@ -309,6 +319,7 @@ export function POS() {
       }
     }
     setCashierSelectedId(null);
+    setCashierDiscount(0);
     bumpStore();
   }
 
@@ -392,6 +403,10 @@ export function POS() {
     const pendingBills = ORDER_STORE.filter(o => o.status === "billed");
     const completedToday = ORDER_STORE.filter(o => o.status === "paid");
     const selectedOrder = cashierSelectedId ? ORDER_STORE.find(o => o.id === cashierSelectedId) : null;
+
+    // Computed totals for cashier payment panel
+    const cashierDiscAmt = selectedOrder ? selectedOrder.subtotal * (cashierDiscount / 100) : 0;
+    const cashierTotal   = selectedOrder ? selectedOrder.subtotal + selectedOrder.tax - cashierDiscAmt : 0;
 
     return (
       <div className="fixed inset-0 bg-background flex flex-col z-40 overflow-hidden">
@@ -526,13 +541,28 @@ export function POS() {
                 {/* Totals */}
                 <div className="space-y-1 text-sm px-1">
                   <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>₹{selectedOrder.subtotal.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-muted-foreground"><span>Tax (5%)</span><span>₹{selectedOrder.tax.toFixed(2)}</span></div>
-                  {selectedOrder.discount > 0 && (
-                    <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{selectedOrder.discount.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-muted-foreground"><span>CGST (2.5%)</span><span>₹{(selectedOrder.tax / 2).toFixed(2)}</span></div>
+                  <div className="flex justify-between text-muted-foreground"><span>SGST (2.5%)</span><span>₹{(selectedOrder.tax / 2).toFixed(2)}</span></div>
+                  {cashierDiscAmt > 0 && (
+                    <div className="flex justify-between text-green-600"><span>Discount ({cashierDiscount}%)</span><span>-₹{cashierDiscAmt.toFixed(2)}</span></div>
                   )}
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg"><span>Total</span><span>₹{selectedOrder.total.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-bold text-lg"><span>Total</span><span>₹{cashierTotal.toFixed(2)}</span></div>
                 </div>
+
+                {/* Discount input */}
+                <div className="flex items-center gap-3 p-3 border rounded-xl">
+                  <Label className="flex-1 text-sm">Discount (%)</Label>
+                  <input type="number" min={0} max={100} value={cashierDiscount}
+                    onChange={e => setCashierDiscount(Math.min(100, Math.max(0, Number(e.target.value))))}
+                    className="w-20 border rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                {cashierDiscount > 15 && (
+                  <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>Discounts over 15% require manager authorization</span>
+                  </div>
+                )}
 
                 {/* KOT/BOT tickets */}
                 <div className="flex gap-1.5 flex-wrap">
@@ -560,7 +590,7 @@ export function POS() {
                 <Button className="w-full h-12 text-base font-bold gap-2 bg-green-600 hover:bg-green-700"
                   onClick={() => handleCashierPayment()}>
                   <CreditCard className="w-5 h-5" />
-                  Settle ₹{selectedOrder.total.toFixed(2)} · {cashierPayMethod}
+                  Settle ₹{cashierTotal.toFixed(2)} · {cashierPayMethod}
                 </Button>
                 <Button variant="outline" className="w-full" onClick={() => setCashierSelectedId(null)}>
                   Cancel
@@ -1452,7 +1482,7 @@ export function POS() {
               {deniedAction==="Discount" && "Captain, Manager, or Admin can apply discounts."}
             </p>
             <p className="text-xs text-muted-foreground text-center bg-muted/30 rounded-lg p-2">
-              Switch to an authorised role via the staff switcher in the sidebar.
+              Log out and sign in with an authorised role to perform this action.
             </p>
           </div>
           <DialogFooter>
