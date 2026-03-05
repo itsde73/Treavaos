@@ -1,101 +1,54 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { Store, ShieldCheck, ChefHat, Wine, UserCheck, CreditCard, Crown, ArrowLeft } from "lucide-react";
-import { useStaff, DEMO_STAFF, type StaffMember } from "../context/StaffContext";
-import { useOutlet } from "../context/OutletContext";
-
-const ROLE_META: Record<string, { icon: any; color: string; bg: string; desc: string }> = {
-  Admin:     { icon: Crown,      color: "text-red-600",    bg: "bg-red-50 border-red-200",     desc: "Full system access"          },
-  Manager:   { icon: ShieldCheck,color: "text-purple-600", bg: "bg-purple-50 border-purple-200",desc: "Full access except settings" },
-  Captain:   { icon: UserCheck,  color: "text-blue-600",   bg: "bg-blue-50 border-blue-200",   desc: "Orders, tables & billing"    },
-  Steward:   { icon: UserCheck,  color: "text-cyan-600",   bg: "bg-cyan-50 border-cyan-200",   desc: "Take orders only"            },
-  Cashier:   { icon: CreditCard, color: "text-green-600",  bg: "bg-green-50 border-green-200", desc: "Bill & payment only"         },
-  Chef:      { icon: ChefHat,    color: "text-orange-600", bg: "bg-orange-50 border-orange-200",desc: "Kitchen KDS & Menu access"  },
-  Bartender: { icon: Wine,       color: "text-violet-600", bg: "bg-violet-50 border-violet-200",desc: "Bar KDS access"              },
-};
-
-// Demo PIN map
-const STAFF_PINS: Record<number, string> = {
-  0: "0000",  // Admin
-  5: "5678",  // Manager
-  1: "1234",  // Rahul - Captain
-  2: "2345",  // Priya - Captain
-  3: "3456",  // Amit - Steward
-  4: "4567",  // Neha - Cashier
-  6: "6789",  // Ravi - Chef
-  7: "7890",  // Pooja - Bartender
-};
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router";
+import { Store, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export function Login() {
-  const { setCurrentStaff } = useStaff();
-  const { currentOutlet } = useOutlet();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-  const [pin, setPin] = useState("");
-  const [showPin, setShowPin] = useState(false);
-  const [error, setError] = useState("");
-  const [step, setStep] = useState<"select" | "pin">("select");
+  const [email, setEmail]       = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw]     = useState(false);
+  const [remember, setRemember] = useState(false);
+  const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
-  function handleSelectStaff(staff: StaffMember) {
-    setSelectedStaff(staff);
-    setPin("");
-    setError("");
-    setStep("pin");
-  }
-
-  function handlePinInput(digit: string) {
-    if (pin.length < 4) {
-      const newPin = pin + digit;
-      setPin(newPin);
-      if (newPin.length === 4) handleLogin(newPin);
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
     }
-  }
+  }, [isAuthenticated, navigate]);
 
-  function handleLogin(enteredPin?: string) {
-    const p = enteredPin ?? pin;
-    if (!selectedStaff) return;
-    const correct = STAFF_PINS[selectedStaff.id];
-    if (p === correct) {
-      setCurrentStaff(selectedStaff);
-      // Navigate based on role
-      if (selectedStaff.role === "Chef" || selectedStaff.role === "Bartender") {
-        navigate("/kitchens");
-      } else if (selectedStaff.role === "Cashier") {
-        navigate("/pos");
-      } else {
-        navigate("/");
-      }
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    // Simulate async
+    await new Promise(r => setTimeout(r, 300));
+    const ok = login(email.trim(), password);
+    setLoading(false);
+    if (ok) {
+      navigate("/");
     } else {
-      setError("Incorrect PIN. Please try again.");
-      setPin("");
+      setError("Invalid email or password. Please try again.");
     }
   }
 
-  function handleBack() {
-    setStep("select");
-    setPin("");
+  function fillDemo(demoEmail: string, demoPassword: string) {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
     setError("");
-    setSelectedStaff(null);
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
       {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5"
+      <div className="absolute inset-0 opacity-5 pointer-events-none"
         style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
-      <div className="relative w-full max-w-4xl">
-        {/* Switch Outlet button */}
-        <button
-          onClick={() => navigate("/outlets")}
-          className="absolute -top-2 left-0 flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Switch Outlet
-        </button>
-
+      <div className="relative w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
               <Store className="w-6 h-6 text-white" />
@@ -105,113 +58,112 @@ export function Login() {
               <p className="text-slate-400 text-sm">Restaurant Management System</p>
             </div>
           </div>
-          <p className="text-primary text-sm font-medium mb-1">
-            Logging into: {currentOutlet.name}
-          </p>
-          <h2 className="text-slate-300 text-lg">
-            {step === "select" ? "Select your profile to sign in" : "Enter your PIN"}
-          </h2>
+          <h2 className="text-slate-200 text-xl font-semibold">Welcome back</h2>
+          <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>
         </div>
 
-        {/* Step 1: Staff selection */}
-        {step === "select" && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {DEMO_STAFF.map(staff => {
-              const meta = ROLE_META[staff.role];
-              const Icon = meta.icon;
-              return (
-                <button key={staff.id} onClick={() => handleSelectStaff(staff)}
-                  className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded-2xl p-5 flex flex-col items-center gap-3 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-black/30">
-                  {/* Avatar */}
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold border-2 transition-all ${meta.bg} ${meta.color}`}>
-                    {staff.avatar}
-                  </div>
-                  <div className="text-center">
-                    <p className="text-white font-semibold text-sm leading-tight">{staff.name}</p>
-                    <div className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${meta.bg} ${meta.color}`}>
-                      <Icon className="w-3 h-3" />{staff.role}
-                    </div>
-                    {staff.section && <p className="text-slate-400 text-xs mt-1">{staff.section}</p>}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Step 2: PIN entry */}
-        {step === "pin" && selectedStaff && (
-          <div className="flex justify-center">
-            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-8 w-full max-w-sm shadow-2xl">
-              {/* Selected staff */}
-              <div className="flex flex-col items-center gap-3 mb-8">
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold border-2 ${ROLE_META[selectedStaff.role].bg} ${ROLE_META[selectedStaff.role].color}`}>
-                  {selectedStaff.avatar}
-                </div>
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">{selectedStaff.name}</p>
-                  <p className="text-slate-400 text-sm">{selectedStaff.role}{selectedStaff.section ? ` · ${selectedStaff.section}` : ""}</p>
-                </div>
-              </div>
-
-              {/* PIN dots */}
-              <div className="flex justify-center gap-4 mb-6">
-                {[0,1,2,3].map(i => (
-                  <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all duration-200
-                    ${i < pin.length ? "bg-primary border-primary scale-110" : "border-white/30"}`} />
-                ))}
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2 text-red-400 text-sm text-center mb-4">
-                  {error}
-                </div>
-              )}
-
-              {/* PIN pad */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {["1","2","3","4","5","6","7","8","9"].map(d => (
-                  <button key={d} onClick={() => handlePinInput(d)}
-                    className="h-14 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xl transition-all duration-150 border border-white/10">
-                    {d}
-                  </button>
-                ))}
-                <button onClick={() => setPin("")}
-                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 text-xs font-medium transition-all border border-white/10">
-                  Clear
-                </button>
-                <button onClick={() => handlePinInput("0")}
-                  className="h-14 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 text-white font-bold text-xl transition-all duration-150 border border-white/10">
-                  0
-                </button>
-                <button onClick={() => setPin(p => p.slice(0, -1))}
-                  className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 text-xl font-bold transition-all border border-white/10">
-                  ⌫
-                </button>
-              </div>
-
-              <button onClick={() => handleLogin()}
-                disabled={pin.length < 4}
-                className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold text-lg transition-all duration-150 shadow-lg shadow-primary/30">
-                Sign In
-              </button>
-
-              <button onClick={handleBack} className="w-full mt-3 text-slate-400 hover:text-white text-sm transition-colors">
-                ← Back to staff selection
-              </button>
-
-              {/* Demo hint */}
-              <div className="mt-5 p-3 bg-white/5 rounded-xl border border-white/10 text-xs text-slate-400 text-center">
-                Demo PIN for <span className="text-white font-medium">{selectedStaff.name}</span>:
-                <span className="ml-2 font-mono text-primary font-bold">{STAFF_PINS[selectedStaff.id]}</span>
+        {/* Login card */}
+        <div className="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Email address</label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full bg-white/10 border border-white/15 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                />
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Footer */}
-        <p className="text-center text-slate-500 text-xs mt-8">
+            {/* Password */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-slate-300">Password</label>
+                <button type="button" className="text-xs text-primary hover:text-primary/80 transition-colors">
+                  Forgot password?
+                </button>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type={showPw ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-white/10 border border-white/15 text-white placeholder-slate-500 rounded-xl pl-10 pr-12 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                />
+                <button type="button" onClick={() => setShowPw(!showPw)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember me */}
+            <div className="flex items-center gap-2">
+              <input
+                id="remember"
+                type="checkbox"
+                checked={remember}
+                onChange={e => setRemember(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary"
+              />
+              <label htmlFor="remember" className="text-sm text-slate-400 cursor-pointer">Remember me</label>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5 text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-all duration-150 shadow-lg shadow-primary/30 flex items-center justify-center gap-2">
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : "Sign In"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-slate-400 mt-5">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              Register
+            </Link>
+          </p>
+        </div>
+
+        {/* Demo credentials */}
+        <div className="mt-5 bg-white/5 border border-white/10 rounded-2xl p-4">
+          <p className="text-xs text-slate-400 font-medium mb-3 uppercase tracking-wider">Demo Accounts</p>
+          <div className="space-y-2">
+            {[
+              { label: "Super Admin",                  email: "admin@trevaos.com",  password: "admin123" },
+              { label: "Outlet Owner (Downtown Bistro)", email: "owner@downtown.com", password: "owner123" },
+              { label: "Outlet Owner (Mall Express)",  email: "owner@mall.com",     password: "owner123" },
+            ].map(d => (
+              <button key={d.email} onClick={() => fillDemo(d.email, d.password)}
+                className="w-full flex items-center justify-between bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 transition-colors text-left">
+                <div>
+                  <p className="text-xs font-medium text-slate-300">{d.label}</p>
+                  <p className="text-[11px] text-slate-500 font-mono">{d.email}</p>
+                </div>
+                <span className="text-[11px] text-primary font-mono bg-primary/10 px-2 py-0.5 rounded-lg">{d.password}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-center text-slate-500 text-xs mt-5">
           TrevaOS v1.0 · Restaurant Management Platform · © 2026
         </p>
       </div>

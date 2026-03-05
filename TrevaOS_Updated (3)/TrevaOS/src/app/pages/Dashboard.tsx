@@ -34,6 +34,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { useStaff } from "../context/StaffContext";
+import { useAuth } from "../context/AuthContext";
 
 const revenueData = [
   { date: "Mon", revenue: 24500, orders: 145 },
@@ -146,7 +147,9 @@ const hqAlerts = [
 
 export function Dashboard() {
   const { currentStaff } = useStaff();
+  const { authUser } = useAuth();
   const isAdminOrManager = currentStaff.role === "Admin" || currentStaff.role === "Manager";
+  const isSuperAdmin = authUser?.type === "super_admin";
   const topOutlet = hqOutlets.reduce((a, b) => (a.revenue > b.revenue ? a : b));
   const totalStaff = hqOutlets.reduce((s, o) => s + o.staff, 0);
 
@@ -482,7 +485,8 @@ export function Dashboard() {
     </div>
   );
 
-  if (!isAdminOrManager) {
+  // Outlet Owner: always show just their outlet dashboard (no tabs)
+  if (!isSuperAdmin) {
     return (
       <div className="p-6 space-y-6">
         {/* Page Header */}
@@ -501,6 +505,7 @@ export function Dashboard() {
     );
   }
 
+  // Super Admin: show tabs — default to HQ Overview
   return (
     <div className="p-6 space-y-6">
       {/* Page Header */}
@@ -515,7 +520,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="outlet">
+      <Tabs defaultValue="hq">
         <TabsList>
           <TabsTrigger value="outlet">This Outlet</TabsTrigger>
           <TabsTrigger value="hq">HQ Overview</TabsTrigger>

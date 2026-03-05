@@ -1,7 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
-import { OutletLogin } from "./pages/OutletLogin";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Login } from "./pages/Login";
+import { Register } from "./pages/Register";
 import { Dashboard } from "./pages/Dashboard";
 import { POS } from "./pages/POS";
 import { OrderManagement } from "./pages/OrderManagement";
@@ -25,11 +26,15 @@ import { Kitchens } from "./pages/Kitchens";
 import { Bar } from "./pages/Bar";
 
 export const router = createBrowserRouter([
-  { path: "/outlets", Component: OutletLogin },
-  { path: "/login", Component: Login },
+  { path: "/login",    Component: Login    },
+  { path: "/register", Component: Register },
   {
     path: "/",
-    Component: Layout,
+    Component: ProtectedRoute,
+    children: [
+      {
+        path: "/",
+        Component: Layout,
     children: [
       { index: true, Component: Dashboard },
       { path: "pos", Component: POS },
@@ -93,6 +98,8 @@ export const router = createBrowserRouter([
       { path: "kitchens/settings", Component: Kitchens },
       { path: "kitchens/kot", Component: Kitchens },
       { path: "kitchens/default", Component: Kitchens },
+    ],
+      },
     ],
   },
 ]);
