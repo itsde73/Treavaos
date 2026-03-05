@@ -11,25 +11,12 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
+import {
+  PLATFORM_OUTLETS, DEMO_TICKETS,
+  STATUS_COLORS, PLAN_COLORS, PRIORITY_COLORS, TICKET_STATUS_COLORS,
+} from "./adminData";
 
-// ── Demo data ──────────────────────────────────────────────────────────────────
-
-const PLATFORM_OUTLETS = [
-  { id: 1, name: "Downtown Bistro", location: "MG Road, Bangalore", status: "active", plan: "Pro", monthlyRevenue: 485000, todayRevenue: 45231, todayOrders: 267, tables: 24, staff: 18, healthScore: 94 },
-  { id: 2, name: "Mall Express", location: "Phoenix Mall, Mumbai", status: "active", plan: "Enterprise", monthlyRevenue: 380000, todayRevenue: 38500, todayOrders: 198, tables: 16, staff: 12, healthScore: 88 },
-  { id: 3, name: "Airport Lounge", location: "T2, Delhi Airport", status: "active", plan: "Enterprise", monthlyRevenue: 620000, todayRevenue: 52800, todayOrders: 312, tables: 32, staff: 28, healthScore: 96 },
-  { id: 4, name: "Cloud Kitchen HQ", location: "HSR Layout, Bangalore", status: "trial", plan: "Basic", monthlyRevenue: 185000, todayRevenue: 18200, todayOrders: 145, tables: 0, staff: 8, healthScore: 72 },
-  { id: 5, name: "Seaside Cafe", location: "Marine Drive, Mumbai", status: "active", plan: "Pro", monthlyRevenue: 290000, todayRevenue: 28400, todayOrders: 156, tables: 20, staff: 14, healthScore: 91 },
-  { id: 6, name: "Heritage Restaurant", location: "Connaught Place, Delhi", status: "inactive", plan: "Pro", monthlyRevenue: 0, todayRevenue: 0, todayOrders: 0, tables: 30, staff: 22, healthScore: 0 },
-];
-
-const DEMO_TICKETS = [
-  { id: "TKT-001", outlet: "Downtown Bistro", subject: "POS terminal not connecting to printer", priority: "high", status: "open", created: "2026-03-04", assignee: "Support Team" },
-  { id: "TKT-002", outlet: "Mall Express", subject: "Need to add new payment gateway", priority: "medium", status: "in-progress", created: "2026-03-03", assignee: "Integration Team" },
-  { id: "TKT-003", outlet: "Airport Lounge", subject: "Menu sync issue between outlets", priority: "low", status: "resolved", created: "2026-03-01", assignee: "Support Team" },
-  { id: "TKT-004", outlet: "Cloud Kitchen HQ", subject: "Monthly billing discrepancy", priority: "high", status: "open", created: "2026-03-05", assignee: "Billing Team" },
-  { id: "TKT-005", outlet: "Downtown Bistro", subject: "Request for custom report format", priority: "low", status: "pending", created: "2026-03-02", assignee: "Product Team" },
-];
+// ── Chart data ─────────────────────────────────────────────────────────────────
 
 const REVENUE_TREND_DAILY = [
   { date: "Feb 27", revenue: 183231 },
@@ -68,45 +55,18 @@ const SUBSCRIPTION_DIST = [
 ];
 
 const RECENT_ALERTS = [
-  { type: "info",    message: "New outlet signup: Cloud Kitchen HQ (Trial started)",        time: "2h ago" },
+  { type: "info",    message: "New outlet signup: Cloud Kitchen HQ (Trial started)",         time: "2h ago" },
   { type: "warning", message: "Heritage Restaurant: Subscription payment overdue by 15 days", time: "5h ago" },
   { type: "error",   message: "Airport Lounge: High error rate detected on POS terminal",     time: "8h ago" },
   { type: "success", message: "Downtown Bistro: Successfully upgraded to Pro plan",           time: "1d ago" },
   { type: "info",    message: "Seaside Cafe: New staff members added (3)",                    time: "1d ago" },
 ];
 
-// ── Badge style maps ───────────────────────────────────────────────────────────
-
-const statusColors: Record<string, string> = {
-  active:   "bg-green-100 text-green-700 border-green-200",
-  inactive: "bg-gray-100 text-gray-600 border-gray-200",
-  trial:    "bg-amber-100 text-amber-700 border-amber-200",
-};
-
-const planColors: Record<string, string> = {
-  Basic:      "bg-blue-100 text-blue-700 border-blue-200",
-  Pro:        "bg-purple-100 text-purple-700 border-purple-200",
-  Enterprise: "bg-orange-100 text-orange-700 border-orange-200",
-};
-
-const priorityColors: Record<string, string> = {
-  high:   "bg-red-100 text-red-700 border-red-200",
-  medium: "bg-amber-100 text-amber-700 border-amber-200",
-  low:    "bg-blue-100 text-blue-700 border-blue-200",
-};
-
-const ticketStatusColors: Record<string, string> = {
-  open:          "bg-red-100 text-red-700 border-red-200",
-  "in-progress": "bg-blue-100 text-blue-700 border-blue-200",
-  pending:       "bg-amber-100 text-amber-700 border-amber-200",
-  resolved:      "bg-green-100 text-green-700 border-green-200",
-};
-
 const alertIconMap: Record<string, { icon: typeof AlertCircle; color: string }> = {
-  error:   { icon: AlertCircle,  color: "text-red-500"   },
-  warning: { icon: AlertCircle,  color: "text-amber-500" },
-  success: { icon: CheckCircle,  color: "text-green-500" },
-  info:    { icon: Clock,        color: "text-blue-500"  },
+  error:   { icon: AlertCircle, color: "text-red-500"   },
+  warning: { icon: AlertCircle, color: "text-amber-500" },
+  success: { icon: CheckCircle, color: "text-green-500" },
+  info:    { icon: Clock,       color: "text-blue-500"  },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -118,10 +78,10 @@ export function SuperAdminDashboard() {
     trendPeriod === "daily"   ? REVENUE_TREND_DAILY   :
     trendPeriod === "weekly"  ? REVENUE_TREND_WEEKLY  : REVENUE_TREND_MONTHLY;
 
-  const totalRevToday  = PLATFORM_OUTLETS.reduce((s, o) => s + o.todayRevenue, 0);
+  const totalRevToday    = PLATFORM_OUTLETS.reduce((s, o) => s + o.todayRevenue, 0);
   const totalOrdersToday = PLATFORM_OUTLETS.reduce((s, o) => s + o.todayOrders, 0);
-  const activeOutlets  = PLATFORM_OUTLETS.filter(o => o.status === "active").length;
-  const activeSubs     = PLATFORM_OUTLETS.filter(o => o.status === "active").length;
+  const activeOutlets    = PLATFORM_OUTLETS.filter(o => o.status === "active").length;
+  const activeSubs       = PLATFORM_OUTLETS.filter(o => o.status === "active").length;
 
   return (
     <div className="p-6 space-y-6">
@@ -134,10 +94,10 @@ export function SuperAdminDashboard() {
       {/* ── Section 1: KPI Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Active Outlets",     value: activeOutlets,                     sub: "+1 this month",    icon: Building2,    color: "text-blue-500",   bg: "bg-blue-50"  },
-          { label: "Total Revenue Today", value: `₹${(totalRevToday/1000).toFixed(1)}K`, sub: "+8.3% vs yesterday", icon: TrendingUp,   color: "text-green-500",  bg: "bg-green-50" },
-          { label: "Total Orders Today", value: totalOrdersToday,                 sub: "Across all outlets", icon: ShoppingCart, color: "text-purple-500", bg: "bg-purple-50"},
-          { label: "Active Subscriptions", value: activeSubs,                     sub: `${PLATFORM_OUTLETS.filter(o=>o.status==="trial").length} on trial`, icon: CreditCard, color: "text-orange-500", bg: "bg-orange-50" },
+          { label: "Active Outlets",      value: activeOutlets,                          sub: "+1 this month",    icon: Building2,    color: "text-blue-500",   bg: "bg-blue-50"   },
+          { label: "Total Revenue Today", value: `₹${(totalRevToday / 1000).toFixed(1)}K`, sub: "+8.3% vs yesterday", icon: TrendingUp,   color: "text-green-500",  bg: "bg-green-50"  },
+          { label: "Total Orders Today",  value: totalOrdersToday,                       sub: "Across all outlets", icon: ShoppingCart, color: "text-purple-500", bg: "bg-purple-50" },
+          { label: "Active Subscriptions",value: activeSubs,                             sub: `${PLATFORM_OUTLETS.filter(o => o.status === "trial").length} on trial`, icon: CreditCard, color: "text-orange-500", bg: "bg-orange-50" },
         ].map(kpi => (
           <Card key={kpi.label}>
             <CardContent className="pt-4 pb-4">
@@ -172,8 +132,8 @@ export function SuperAdminDashboard() {
             <LineChart data={trendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tickFormatter={v => `₹${(v/1000).toFixed(0)}K`} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => [`₹${(v/1000).toFixed(1)}K`, "Revenue"]} />
+              <YAxis tickFormatter={v => `₹${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v: number) => [`₹${(v / 1000).toFixed(1)}K`, "Revenue"]} />
               <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -193,7 +153,7 @@ export function SuperAdminDashboard() {
               <thead>
                 <tr className="border-b bg-muted/30">
                   {["Outlet", "Status", "Plan", "Monthly Rev.", "Today's Rev.", "Today's Orders", "Health"].map(h => (
-                    <th key={h} className={`px-4 py-3 font-medium text-muted-foreground ${h.startsWith("Today") || h === "Monthly Rev." || h === "Health" ? "text-right" : "text-left"}`}>{h}</th>
+                    <th key={h} className={`px-4 py-3 font-medium text-muted-foreground ${["Monthly Rev.", "Today's Rev.", "Today's Orders", "Health"].includes(h) ? "text-right" : "text-left"}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -205,16 +165,16 @@ export function SuperAdminDashboard() {
                       <p className="text-xs text-muted-foreground">{outlet.location}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="outline" className={`text-xs capitalize ${statusColors[outlet.status]}`}>{outlet.status}</Badge>
+                      <Badge variant="outline" className={`text-xs capitalize ${STATUS_COLORS[outlet.status]}`}>{outlet.status}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="outline" className={`text-xs ${planColors[outlet.plan]}`}>{outlet.plan}</Badge>
+                      <Badge variant="outline" className={`text-xs ${PLAN_COLORS[outlet.plan]}`}>{outlet.plan}</Badge>
                     </td>
                     <td className="px-4 py-3 text-right font-medium">
-                      {outlet.monthlyRevenue > 0 ? `₹${(outlet.monthlyRevenue/1000).toFixed(0)}K` : "—"}
+                      {outlet.monthlyRevenue > 0 ? `₹${(outlet.monthlyRevenue / 1000).toFixed(0)}K` : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {outlet.todayRevenue > 0 ? `₹${(outlet.todayRevenue/1000).toFixed(1)}K` : "—"}
+                      {outlet.todayRevenue > 0 ? `₹${(outlet.todayRevenue / 1000).toFixed(1)}K` : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">{outlet.todayOrders || "—"}</td>
                     <td className="px-4 py-3 text-right">
@@ -232,7 +192,6 @@ export function SuperAdminDashboard() {
 
       {/* ── Section 4: Two side-by-side charts ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Revenue by outlet bar chart */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Revenue by Outlet (Monthly)</CardTitle>
@@ -242,15 +201,14 @@ export function SuperAdminDashboard() {
               <BarChart data={OUTLET_REVENUE} margin={{ left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tickFormatter={v => `₹${(v/1000).toFixed(0)}K`} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v: number) => [`₹${(v/1000).toFixed(0)}K`, "Revenue"]} />
-                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4,4,0,0]} />
+                <YAxis tickFormatter={v => `₹${(v / 1000).toFixed(0)}K`} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v: number) => [`₹${(v / 1000).toFixed(0)}K`, "Revenue"]} />
+                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Subscription distribution pie chart */}
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Subscription Distribution</CardTitle>
@@ -258,7 +216,8 @@ export function SuperAdminDashboard() {
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={SUBSCRIPTION_DIST} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
+                <Pie data={SUBSCRIPTION_DIST} cx="50%" cy="50%" outerRadius={80} dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
                   {SUBSCRIPTION_DIST.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
                 <Legend />
@@ -312,8 +271,8 @@ export function SuperAdminDashboard() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-mono text-xs text-muted-foreground">{ticket.id}</span>
-                      <Badge variant="outline" className={`text-xs ${priorityColors[ticket.priority]}`}>{ticket.priority}</Badge>
-                      <Badge variant="outline" className={`text-xs capitalize ${ticketStatusColors[ticket.status]}`}>
+                      <Badge variant="outline" className={`text-xs ${PRIORITY_COLORS[ticket.priority]}`}>{ticket.priority}</Badge>
+                      <Badge variant="outline" className={`text-xs capitalize ${TICKET_STATUS_COLORS[ticket.status]}`}>
                         {ticket.status.replace("-", " ")}
                       </Badge>
                     </div>
