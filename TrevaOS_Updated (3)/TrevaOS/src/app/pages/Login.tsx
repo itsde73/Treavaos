@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Eye, EyeOff, Store, ShieldCheck, ChefHat, Wine, UserCheck, CreditCard, Crown } from "lucide-react";
+import { Store, ShieldCheck, ChefHat, Wine, UserCheck, CreditCard, Crown, ArrowLeft } from "lucide-react";
 import { useStaff, DEMO_STAFF, type StaffMember } from "../context/StaffContext";
+import { useOutlet } from "../context/OutletContext";
 
 const ROLE_META: Record<string, { icon: any; color: string; bg: string; desc: string }> = {
   Admin:     { icon: Crown,      color: "text-red-600",    bg: "bg-red-50 border-red-200",     desc: "Full system access"          },
@@ -9,7 +10,7 @@ const ROLE_META: Record<string, { icon: any; color: string; bg: string; desc: st
   Captain:   { icon: UserCheck,  color: "text-blue-600",   bg: "bg-blue-50 border-blue-200",   desc: "Orders, tables & billing"    },
   Steward:   { icon: UserCheck,  color: "text-cyan-600",   bg: "bg-cyan-50 border-cyan-200",   desc: "Take orders only"            },
   Cashier:   { icon: CreditCard, color: "text-green-600",  bg: "bg-green-50 border-green-200", desc: "Bill & payment only"         },
-  Chef:      { icon: ChefHat,    color: "text-orange-600", bg: "bg-orange-50 border-orange-200",desc: "Kitchen KDS access"          },
+  Chef:      { icon: ChefHat,    color: "text-orange-600", bg: "bg-orange-50 border-orange-200",desc: "Kitchen KDS & Menu access"  },
   Bartender: { icon: Wine,       color: "text-violet-600", bg: "bg-violet-50 border-violet-200",desc: "Bar KDS access"              },
 };
 
@@ -27,6 +28,7 @@ const STAFF_PINS: Record<number, string> = {
 
 export function Login() {
   const { setCurrentStaff } = useStaff();
+  const { currentOutlet } = useOutlet();
   const navigate = useNavigate();
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [pin, setPin] = useState("");
@@ -83,6 +85,15 @@ export function Login() {
         style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "40px 40px" }} />
 
       <div className="relative w-full max-w-4xl">
+        {/* Switch Outlet button */}
+        <button
+          onClick={() => navigate("/outlets")}
+          className="absolute -top-2 left-0 flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Switch Outlet
+        </button>
+
         {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-3 mb-4">
@@ -94,6 +105,9 @@ export function Login() {
               <p className="text-slate-400 text-sm">Restaurant Management System</p>
             </div>
           </div>
+          <p className="text-primary text-sm font-medium mb-1">
+            Logging into: {currentOutlet.name}
+          </p>
           <h2 className="text-slate-300 text-lg">
             {step === "select" ? "Select your profile to sign in" : "Enter your PIN"}
           </h2>

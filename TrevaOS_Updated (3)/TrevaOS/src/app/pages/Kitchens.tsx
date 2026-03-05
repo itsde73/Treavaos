@@ -13,6 +13,20 @@ import {
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 
+const KOT_ALERT_STYLES = `
+@keyframes kot-blink {
+  0%, 100% { border-color: inherit; }
+  50% { border-color: #ef4444; }
+}
+.kot-alert {
+  animation: kot-blink 2s ease-in-out infinite;
+}
+.kot-alert-urgent {
+  animation: kot-blink 1s ease-in-out infinite;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+`;
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 const BASE_NOW = Date.now();
 const minsAgo = (n: number) => BASE_NOW - n * 60_000;
@@ -152,8 +166,8 @@ function KOTCard({ item, type }: { item: KOTItem; type: "kot" | "bot" }) {
     timerState === "in-prep" ? "border-l-yellow-400" : "border-l-red-500";
 
   const cardAnim =
-    alertActive && escalated  ? "ring-2 ring-red-600 animate-pulse shadow-md shadow-red-200" :
-    alertActive               ? "ring-1 ring-red-400 animate-pulse"                          : "";
+    alertActive && escalated  ? "ring-2 ring-red-600 shadow-md shadow-red-200 kot-alert-urgent" :
+    alertActive               ? "ring-1 ring-red-400 kot-alert"                                  : "";
 
   // ── Timer pill label & colours ────────────────────────────────────────────
   const timerLabel =
@@ -249,7 +263,7 @@ function KOTCard({ item, type }: { item: KOTItem; type: "kot" | "bot" }) {
             </div>
           )}
           {escalated && (
-            <div className="mb-2 flex items-center gap-1.5 text-xs text-red-700 bg-red-50 border border-red-300 rounded px-2 py-1 font-semibold animate-pulse">
+            <div className="mb-2 flex items-center gap-1.5 text-xs text-red-700 bg-red-50 border border-red-300 rounded px-2 py-1 font-semibold kot-alert-urgent">
               <AlertTriangle className="w-3 h-3 flex-shrink-0" />
               ⚠️ Manager Notified
             </div>
@@ -350,6 +364,7 @@ export function Kitchens() {
 
   return (
     <div className="p-6 space-y-5">
+      <style>{KOT_ALERT_STYLES}</style>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Kitchens & Bar</h1>

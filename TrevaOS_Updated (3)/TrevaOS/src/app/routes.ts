@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
+import { OutletLogin } from "./pages/OutletLogin";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { POS } from "./pages/POS";
@@ -24,6 +25,7 @@ import { Kitchens } from "./pages/Kitchens";
 import { Bar } from "./pages/Bar";
 
 export const router = createBrowserRouter([
+  { path: "/outlets", Component: OutletLogin },
   { path: "/login", Component: Login },
   {
     path: "/",
