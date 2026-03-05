@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { useStaff, type RolePermissions } from "../context/StaffContext";
+import { useStaff, DEMO_STAFF, type RolePermissions } from "../context/StaffContext";
 import { useAuth } from "../context/AuthContext";
 
 const ROLE_COLORS: Record<string, string> = {
@@ -111,7 +111,7 @@ const outlets = [
 ];
 
 export function Layout() {
-  const { currentStaff, permissions } = useStaff();
+  const { currentStaff, permissions, setCurrentStaff } = useStaff();
   const { authUser, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed]     = useState(false);
@@ -121,6 +121,7 @@ export function Layout() {
   const location = useLocation();
 
   function handleLogout() {
+    setCurrentStaff(DEMO_STAFF[0]);
     logout();
     navigate("/login");
   }

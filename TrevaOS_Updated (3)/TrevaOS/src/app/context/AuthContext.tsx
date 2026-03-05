@@ -24,6 +24,7 @@ interface AuthContextValue {
   authUser: AuthUser | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => boolean;
+  loginAsStaff: (staffName: string, outletId: number) => void;
   register: (data: RegisterData) => boolean;
   logout: () => void;
 }
@@ -66,6 +67,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   }
 
+  function loginAsStaff(staffName: string, outletId: number) {
+    const authData: AuthUser = {
+      id: `staff-${Date.now()}`,
+      email: "staff@internal",
+      name: staffName,
+      type: "outlet_owner",
+      outletIds: [outletId],
+    };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(authData));
+    setAuthUser(authData);
+  }
+
   function register(_data: RegisterData): boolean {
     // In a real app this would create the user; here we just simulate success
     return true;
@@ -77,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ authUser, isAuthenticated: !!authUser, login, register, logout }}>
+    <AuthContext.Provider value={{ authUser, isAuthenticated: !!authUser, login, loginAsStaff, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
