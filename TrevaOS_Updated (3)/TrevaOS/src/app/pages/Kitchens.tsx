@@ -15,14 +15,20 @@ import { Textarea } from "../components/ui/textarea";
 
 const KOT_ALERT_STYLES = `
 @keyframes kot-blink {
-  0%, 100% { border-color: inherit; }
-  50% { border-color: #ef4444; }
+  0%, 100% { outline-color: transparent; }
+  50% { outline-color: #ef4444; }
 }
 .kot-alert {
+  will-change: transform;
+  transform: translateZ(0);
   animation: kot-blink 2s ease-in-out infinite;
+  outline: 2px solid transparent;
 }
 .kot-alert-urgent {
+  will-change: transform;
+  transform: translateZ(0);
   animation: kot-blink 1s ease-in-out infinite;
+  outline: 2px solid transparent;
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
 }
 `;

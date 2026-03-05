@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard, UtensilsCrossed, Bell, CalendarCheck, ShoppingCart,
   ClipboardList, Users, UserCheck, Bike, CreditCard, BarChart3,
   Sparkles, Landmark, Package, ChefHat, Settings as SettingsIcon, Search,
   ChevronLeft, ChevronRight, Store, ChevronDown, ChevronUp, User, LogOut,
-  Moon, Sun, Grid3x3, Wallet, ShieldAlert, RefreshCw,
+  Moon, Sun, Grid3x3, Wallet, ShieldAlert, RefreshCw, Globe,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
@@ -14,6 +14,7 @@ import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useStaff, DEMO_STAFF, type RolePermissions } from "../context/StaffContext";
+import { useAuth } from "../context/AuthContext";
 
 const ROLE_COLORS: Record<string, string> = {
   Admin:     "bg-red-100 text-red-700 border-red-200",
@@ -112,12 +113,19 @@ const outlets = [
 
 export function Layout() {
   const { currentStaff, permissions, setCurrentStaff } = useStaff();
+  const { authUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed]     = useState(false);
   const [expandedGroups, setExpandedGroups]         = useState(["Tables", "Kitchens"]);
   const [selectedOutlet, setSelectedOutlet]         = useState(outlets[0]);
   const [darkMode, setDarkMode]                     = useState(false);
   const [showStaffSwitch, setShowStaffSwitch]       = useState(false);
   const location = useLocation();
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
 
   const isActive = (href: string) => {
     if (href === "/") return location.pathname === "/";
@@ -232,24 +240,32 @@ export function Layout() {
           {/* Topbar */}
           <header className="h-14 border-b border-border bg-card px-4 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3 flex-1">
-              {/* Outlet switcher */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
-                    <Store className="w-3.5 h-3.5" />{selectedOutlet.name}<ChevronDown className="w-3 h-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuLabel>Switch Outlet</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {outlets.map(o => (
-                    <DropdownMenuItem key={o.id} onClick={() => setSelectedOutlet(o)} className="flex items-center justify-between">
-                      <span>{o.name}</span>
-                      {o.id === selectedOutlet.id && <div className="w-2 h-2 rounded-full bg-primary" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* All Outlets indicator for Super Admin */}
+              {authUser?.type === "super_admin" ? (
+                <div className="flex items-center gap-1.5 h-8 px-3 rounded-lg border bg-muted/30 text-xs font-medium">
+                  <Globe className="w-3.5 h-3.5 text-primary" />
+                  <span>All Outlets</span>
+                </div>
+              ) : (
+                /* Outlet switcher for outlet owners */
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
+                      <Store className="w-3.5 h-3.5" />{selectedOutlet.name}<ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuLabel>Switch Outlet</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {outlets.map(o => (
+                      <DropdownMenuItem key={o.id} onClick={() => setSelectedOutlet(o)} className="flex items-center justify-between">
+                        <span>{o.name}</span>
+                        {o.id === selectedOutlet.id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               <div className="relative w-64">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -267,26 +283,49 @@ export function Layout() {
                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-destructive rounded-full" />
               </Button>
 
-              {/* Staff account dropdown */}
+              {/* Auth user + staff dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 pl-2 pr-3 h-8">
                     <Avatar className="w-7 h-7">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">{currentStaff.avatar}</AvatarFallback>
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                        {authUser ? authUser.name.slice(0, 2).toUpperCase() : currentStaff.avatar}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="text-left hidden sm:block">
-                      <p className="text-xs font-semibold leading-none">{currentStaff.name}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{currentStaff.role}</p>
+                      <p className="text-xs font-semibold leading-none">{authUser?.name ?? currentStaff.name}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {authUser?.type === "super_admin" ? "Super Admin" : authUser?.type === "outlet_owner" ? "Outlet Owner" : currentStaff.role}
+                      </p>
                     </div>
                     <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuLabel>
-                    <p className="font-semibold">{currentStaff.name}</p>
-                    <Badge variant="outline" className={`text-xs mt-1 ${ROLE_COLORS[currentStaff.role]}`}>{currentStaff.role}</Badge>
-                    {currentStaff.section && <p className="text-xs text-muted-foreground mt-0.5">Section: {currentStaff.section}</p>}
-                  </DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-56">
+                  {authUser && (
+                    <>
+                      <DropdownMenuLabel>
+                        <p className="font-semibold">{authUser.name}</p>
+                        <p className="text-xs text-muted-foreground font-normal mt-0.5">{authUser.email}</p>
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {authUser.type === "super_admin" ? "Super Admin" : "Outlet Owner"}
+                        </Badge>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Staff on duty</DropdownMenuLabel>
+                  <div className="px-2 py-1">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-6 h-6">
+                        <AvatarFallback className="bg-muted font-bold text-xs">{currentStaff.avatar}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-xs font-semibold leading-none">{currentStaff.name}</p>
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 mt-0.5 ${ROLE_COLORS[currentStaff.role]}`}>{currentStaff.role}</Badge>
+                      </div>
+                    </div>
+                  </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem><User className="w-4 h-4 mr-2" />Profile</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setShowStaffSwitch(true)}>
@@ -298,7 +337,9 @@ export function Layout() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive"><LogOut className="w-4 h-4 mr-2" />Logout</DropdownMenuItem>
+                  <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
+                    <LogOut className="w-4 h-4 mr-2" />Logout
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
