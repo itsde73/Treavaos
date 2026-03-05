@@ -1,9 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
-import { Store, Eye, EyeOff, Mail, Lock, ChevronLeft, MapPin, Delete } from "lucide-react";
+import { Store, Eye, EyeOff, Mail, Lock, ChevronLeft, Delete } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useStaff, DEMO_STAFF, type StaffMember } from "../context/StaffContext";
-import { useOutlet, DEMO_OUTLETS, type Outlet } from "../context/OutletContext";
+import { useStaff, DEMO_STAFF, type StaffMember, type StaffRole } from "../context/StaffContext";
+import { useOutlet, DEMO_OUTLETS } from "../context/OutletContext";
+
+const ROLE_META: Record<StaffRole, { bg: string; text: string }> = {
+  Admin:     { bg: "bg-purple-500/20",  text: "text-purple-300"  },
+  Manager:   { bg: "bg-blue-500/20",    text: "text-blue-300"    },
+  Captain:   { bg: "bg-green-500/20",   text: "text-green-300"   },
+  Steward:   { bg: "bg-cyan-500/20",    text: "text-cyan-300"    },
+  Cashier:   { bg: "bg-orange-500/20",  text: "text-orange-300"  },
+  Chef:      { bg: "bg-red-500/20",     text: "text-red-300"     },
+  Bartender: { bg: "bg-pink-500/20",    text: "text-pink-300"    },
+};
+
+// Terminal is pre-configured to the first outlet (industry standard: staff never choose outlets)
+const TERMINAL_OUTLET = DEMO_OUTLETS[0];
 
 const DEMO_ACCOUNTS = [
   { email: "admin@trevaos.com",  password: "admin123", type: "super_admin" as const },
@@ -40,12 +53,11 @@ export function Login() {
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
 
-  // Staff login state — step: "outlet" | "staff" | "pin"
-  const [staffStep, setStaffStep]           = useState<"outlet" | "staff" | "pin">("outlet");
-  const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
-  const [selectedStaff, setSelectedStaff]   = useState<StaffMember | null>(null);
-  const [pin, setPin]                       = useState("");
-  const [pinError, setPinError]             = useState("");
+  // Staff login state — step: "staff" | "pin"
+  const [staffStep, setStaffStep]         = useState<"staff" | "pin">("staff");
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [pin, setPin]                     = useState("");
+  const [pinError, setPinError]           = useState("");
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -78,11 +90,6 @@ export function Login() {
 
   // ── Staff PIN handlers ────────────────────────────────────────────
 
-  function handleOutletSelect(outlet: Outlet) {
-    setSelectedOutlet(outlet);
-    setStaffStep("staff");
-  }
-
   function handleStaffSelect(staff: StaffMember) {
     setSelectedStaff(staff);
     setPin("");
@@ -111,12 +118,12 @@ export function Login() {
   }
 
   function verifyPin(enteredPin: string) {
-    if (!selectedStaff || !selectedOutlet) return;
+    if (!selectedStaff) return;
     const correctPin = STAFF_PINS[selectedStaff.id];
     if (enteredPin === correctPin) {
       setCurrentStaff(selectedStaff);
-      setCurrentOutlet(selectedOutlet);
-      loginAsStaff(selectedStaff.name, selectedOutlet.id);
+      setCurrentOutlet(TERMINAL_OUTLET);
+      loginAsStaff(selectedStaff.name, TERMINAL_OUTLET.id);
       const role = selectedStaff.role;
       if (role === "Chef" || role === "Bartender") {
         navigate("/kitchens");
@@ -132,8 +139,7 @@ export function Login() {
   }
 
   function resetStaffFlow() {
-    setStaffStep("outlet");
-    setSelectedOutlet(null);
+    setStaffStep("staff");
     setSelectedStaff(null);
     setPin("");
     setPinError("");
@@ -295,74 +301,39 @@ export function Login() {
         {/* ── Staff Login tab ── */}
         {activeTab === "staff" && (
           <>
-            {/* Step 1: Select Outlet */}
-            {staffStep === "outlet" && (
+            {/* Step 1: Select Staff Profile */}
+            {staffStep === "staff" && (
               <div className="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-6 shadow-2xl">
-                <h3 className="text-white font-semibold text-base mb-1">Select Your Outlet</h3>
-                <p className="text-slate-400 text-sm mb-4">Choose the outlet you're logging into</p>
+                <h3 className="text-white font-semibold text-base mb-1">Select Your Profile</h3>
+                <p className="text-slate-400 text-sm mb-4">Who are you? Tap your name to continue</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {DEMO_OUTLETS.map(outlet => (
-                    <button
-                      key={outlet.id}
-                      onClick={() => handleOutletSelect(outlet)}
-                      className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl p-4 text-left transition-all group"
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center mb-3 group-hover:bg-primary/30 transition-colors">
-                        <Store className="w-4 h-4 text-primary" />
-                      </div>
-                      <p className="text-white text-sm font-semibold leading-tight">{outlet.name}</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        <MapPin className="w-3 h-3 text-slate-500 flex-shrink-0" />
-                        <p className="text-slate-500 text-[11px] truncate">{outlet.address}</p>
-                      </div>
-                      <span className={`inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        outlet.status === "open" ? "bg-green-500/15 text-green-400" :
-                        outlet.status === "pre-open" ? "bg-yellow-500/15 text-yellow-400" :
-                        "bg-slate-500/15 text-slate-400"
-                      }`}>
-                        {outlet.status}
-                      </span>
-                    </button>
-                  ))}
+                  {DEMO_STAFF.map(staff => {
+                    const roleMeta = ROLE_META[staff.role] ?? { bg: "bg-white/10", text: "text-slate-300" };
+                    return (
+                      <button
+                        key={staff.id}
+                        onClick={() => handleStaffSelect(staff)}
+                        className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded-2xl p-4 text-left transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center mb-3 group-hover:bg-primary/30 transition-colors">
+                          <span className="text-primary font-bold text-sm">{staff.avatar}</span>
+                        </div>
+                        <p className="text-white text-sm font-semibold leading-tight truncate">{staff.name}</p>
+                        <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full font-medium ${roleMeta.bg} ${roleMeta.text}`}>
+                          {staff.role}
+                        </span>
+                        {staff.section && (
+                          <p className="text-slate-500 text-[10px] mt-0.5">{staff.section}</p>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Step 2: Select Staff */}
-            {staffStep === "staff" && selectedOutlet && (
-              <div className="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-6 shadow-2xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <button onClick={() => setStaffStep("outlet")} className="text-slate-400 hover:text-white transition-colors">
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <div>
-                    <h3 className="text-white font-semibold text-base leading-none">Select Staff Profile</h3>
-                    <p className="text-slate-400 text-xs mt-0.5">{selectedOutlet.name}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {DEMO_STAFF.map(staff => (
-                    <button
-                      key={staff.id}
-                      onClick={() => handleStaffSelect(staff)}
-                      className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl p-4 text-left transition-all group"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center mb-3 group-hover:bg-primary/30 transition-colors">
-                        <span className="text-primary font-bold text-sm">{staff.avatar}</span>
-                      </div>
-                      <p className="text-white text-sm font-semibold leading-tight truncate">{staff.name}</p>
-                      <p className="text-slate-400 text-[11px] mt-0.5">{staff.role}</p>
-                      {staff.section && (
-                        <p className="text-slate-500 text-[10px] mt-0.5">{staff.section}</p>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Enter PIN */}
-            {staffStep === "pin" && selectedStaff && selectedOutlet && (
+            {/* Step 2: Enter PIN */}
+            {staffStep === "pin" && selectedStaff && (
               <div className="bg-white/5 backdrop-blur border border-white/10 rounded-3xl p-6 shadow-2xl">
                 <div className="flex items-center gap-2 mb-5">
                   <button onClick={() => { setStaffStep("staff"); setPin(""); setPinError(""); }} className="text-slate-400 hover:text-white transition-colors">
@@ -370,7 +341,7 @@ export function Login() {
                   </button>
                   <div>
                     <h3 className="text-white font-semibold text-base leading-none">Enter PIN</h3>
-                    <p className="text-slate-400 text-xs mt-0.5">{selectedOutlet.name}</p>
+                    <p className="text-slate-400 text-xs mt-0.5">{TERMINAL_OUTLET.name}</p>
                   </div>
                 </div>
 
