@@ -3,6 +3,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 export type AuthUserType = "super_admin" | "outlet_owner";
 
 export interface AuthUser {
+  id: string;
   email: string;
   name: string;
   type: AuthUserType;
@@ -14,9 +15,9 @@ interface DemoUser extends AuthUser {
 }
 
 const DEMO_USERS: DemoUser[] = [
-  { email: "admin@trevaos.com",  password: "admin123", type: "super_admin",  name: "Platform Admin"  },
-  { email: "owner@downtown.com", password: "owner123", type: "outlet_owner", name: "Rajesh Kumar",  outletIds: [1] },
-  { email: "owner@mall.com",     password: "owner123", type: "outlet_owner", name: "Priya Sharma",  outletIds: [2] },
+  { id: "u-1", email: "admin@trevaos.com",  password: "admin123", type: "super_admin",  name: "TrevaOS Admin"  },
+  { id: "u-2", email: "owner@downtown.com", password: "owner123", type: "outlet_owner", name: "Rajesh Kumar",  outletIds: [1] },
+  { id: "u-3", email: "owner@mall.com",     password: "owner123", type: "outlet_owner", name: "Priya Sharma",  outletIds: [2] },
 ];
 
 interface AuthContextValue {
@@ -36,10 +37,21 @@ export interface RegisterData {
   numOutlets: string;
 }
 
+const SESSION_KEY = "trevaos_auth_user";
+
+function readSession(): AuthUser | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(readSession);
 
   function login(email: string, password: string): boolean {
     const user = DEMO_USERS.find(
@@ -47,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     if (user) {
       const { password: _pw, ...authData } = user;
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(authData));
       setAuthUser(authData);
       return true;
     }
@@ -59,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
     setAuthUser(null);
   }
 
